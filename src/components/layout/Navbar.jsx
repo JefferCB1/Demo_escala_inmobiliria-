@@ -95,6 +95,14 @@ const Navbar = () => {
         const isOpen = openAccordion === index;
         const isActive = location.pathname === link.href;
 
+        const handleClick = (e) => {
+            e.preventDefault();
+            setMobileMenuOpen(false);
+            if (link.isPage) {
+                window.location.href = link.href;
+            }
+        };
+
         if (hasChildren) {
             return (
                 <div className="overflow-hidden">
@@ -137,7 +145,8 @@ const Navbar = () => {
 
         const content = (
             <div
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] ${
+                onClick={handleClick}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                     isActive 
                         ? 'bg-escala-accent text-white shadow-md shadow-orange-200' 
                         : 'text-escala-dark hover:bg-gray-50'
@@ -151,10 +160,7 @@ const Navbar = () => {
             </div>
         );
 
-        if (link.isPage) {
-            return <Link to={link.href} onClick={() => setMobileMenuOpen(false)}>{content}</Link>;
-        }
-        return <a href={link.href} onClick={() => setMobileMenuOpen(false)}>{content}</a>;
+        return content;
     };
 
     return (
@@ -217,15 +223,11 @@ const Navbar = () => {
 
             {/* Mobile Menu Overlay */}
             <div 
-                className={`fixed inset-0 z-40 lg:hidden transition-all duration-300 ${
-                    mobileMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'
-                }`}
+                className={`fixed inset-0 z-40 lg:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}
             >
                 {/* Backdrop */}
                 <div 
-                    className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${
-                        mobileMenuOpen ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                     onClick={() => setMobileMenuOpen(false)}
                 />
                 
