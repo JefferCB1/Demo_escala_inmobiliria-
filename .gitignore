@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.local
+*.log
+.DS_Store
+.claude
+.agents
+.agent
+.kiro
+skills
+skills-lock.json
+*.mp4
+escala_*.json
+escala_*.html
+extract_data.js
