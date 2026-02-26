@@ -10,7 +10,7 @@ dist
 .kiro
 skills
 skills-lock.json
-*.mp4
+
 escala_*.json
 escala_*.html
 extract_data.js
