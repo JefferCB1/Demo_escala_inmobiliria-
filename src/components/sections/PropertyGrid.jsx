@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const propiedades = [
@@ -109,6 +109,7 @@ const PropertyCard = ({ propiedad }) => (
 const PropertyGrid = () => {
   // Duplicate cards for seamless infinite loop
   const allCards = [...propiedades, ...propiedades];
+  const [isPaused, setIsPaused] = useState(false);
 
   return (
     <section className="relative w-full py-12 px-4 sm:px-6 z-10 bg-white overflow-hidden">
@@ -123,8 +124,18 @@ const PropertyGrid = () => {
         </div>
 
         {/* Auto-scrolling Marquee */}
-        <div className="relative">
-          <div className="flex gap-4 animate-marquee py-2">
+        <div 
+          className="relative overflow-visible"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
+          onTouchCancel={() => setIsPaused(false)}
+        >
+          <div 
+            className="flex gap-4 animate-marquee py-2"
+            style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
+          >
             {allCards.map((propiedad, index) => (
               <PropertyCard key={`${propiedad.id}-${index}`} propiedad={propiedad} />
             ))}
