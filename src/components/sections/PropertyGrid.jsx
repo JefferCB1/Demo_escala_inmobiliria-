@@ -65,7 +65,7 @@ const formatPrice = (price) => {
 
 const PropertyCard = ({ propiedad }) => (
   <div className="flex-shrink-0 w-64 sm:w-72 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:-translate-y-1 flex flex-col">
-    <Link to={`/propiedades/${propiedad.id}`} className="block group flex-1">
+    <Link to={`/propiedad/${propiedad.id}`} className="block group flex-1">
       <div className="relative h-40 overflow-hidden">
         <img
           src={propiedad.imagen}
