@@ -123,6 +123,7 @@ const Navbar = () => {
                                 <a
                                     key={childIndex}
                                     href={child.href}
+                                    onClick={() => setMobileMenuOpen(false)}
                                     className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:text-escala-accent hover:bg-orange-50 rounded-xl transition-all"
                                 >
                                     {child.label}
@@ -151,9 +152,9 @@ const Navbar = () => {
         );
 
         if (link.isPage) {
-            return <Link to={link.href}>{content}</Link>;
+            return <Link to={link.href} onClick={() => setMobileMenuOpen(false)}>{content}</Link>;
         }
-        return <a href={link.href}>{content}</a>;
+        return <a href={link.href} onClick={() => setMobileMenuOpen(false)}>{content}</a>;
     };
 
     return (
