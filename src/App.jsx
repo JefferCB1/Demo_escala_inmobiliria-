@@ -16,6 +16,7 @@ import { ExitIntentModal } from './components/ui/ExitIntentModal';
 import FloatingChatbot from './components/ui/FloatingChatbot';
 import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetail from './pages/PropertyDetail';
+import NosotrosPage from './pages/NosotrosPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -66,6 +67,7 @@ function App() {
                 <Navbar />
                 <Routes>
                     <Route path="/" element={<HomePage />} />
+                    <Route path="/nosotros" element={<NosotrosPage />} />
                     <Route path="/propiedades" element={<PropertiesPage />} />
                     <Route path="/propiedad/:id" element={<PropertyDetail />} />
                 </Routes>

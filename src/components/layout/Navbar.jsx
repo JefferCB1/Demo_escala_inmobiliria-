@@ -36,7 +36,7 @@ const Navbar = () => {
 
     const navLinks = [
         { label: 'Inicio', href: '/', isPage: true, icon: '🏠' },
-        { label: 'Nosotros', href: '#', icon: '👥' },
+        { label: 'Nosotros', href: '/nosotros', isPage: true, icon: '👥' },
         { 
             label: 'Propiedades', 
             href: '/propiedades',
