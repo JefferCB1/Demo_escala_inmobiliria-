@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import BentoCard from '../ui/BentoCard';
 
 const sedes = [
@@ -14,7 +15,8 @@ const sedes = [
       facturacion: '3004155950'
     },
     imagen: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-    color: 'from-emerald-600 to-teal-800'
+    color: 'from-emerald-600 to-teal-800',
+    link: '/sede-medellin'
   },
   {
     id: 'sabaneta',
@@ -27,7 +29,8 @@ const sedes = [
       servicios: '3005759048'
     },
     imagen: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop',
-    color: 'from-orange-500 to-red-700'
+    color: 'from-orange-500 to-red-700',
+    link: '/sede-sabaneta'
   }
 ];
 
@@ -102,14 +105,12 @@ const PropertyExplorer = () => {
                                     </div>
 
                                     <div className="flex gap-2">
-                                        <a 
-                                            href={`https://simidocs.siminmobiliarias.com/base/simired/simidocsapi1.0/index.php?inmo=${sede.id === 'medellin' ? '1145' : '1272'}&tipo=1`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                        <Link 
+                                            to={sede.link}
                                             className="flex-1 bg-white text-gray-900 py-3 px-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
                                         >
-                                            Propietarios
-                                        </a>
+                                            Ver Sede
+                                        </Link>
                                         <a 
                                             href={`https://simidocs.siminmobiliarias.com/base/simired/simidocsapi1.0/index.php?inmo=${sede.id === 'medellin' ? '1145' : '1272'}&tipo=2`}
                                             target="_blank"
@@ -120,14 +121,16 @@ const PropertyExplorer = () => {
                                         </a>
                                     </div>
 
-                                    <a 
-                                        href={`https://pagos.palomma.com/${sede.id === 'medellin' ? 'escalainmobiliariamedellin' : 'escalainmobiliariasabaneta'}/auth/login`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="block w-full bg-escala-accent hover:bg-orange-600 text-white py-3 px-4 rounded-xl font-bold text-center transition-colors"
-                                    >
-                                        Realizar Pagos →
-                                    </a>
+                                    <div className="flex gap-2 mt-2">
+                                        <a 
+                                            href={`https://pagos.palomma.com/${sede.id === 'medellin' ? 'escalainmobiliariamedellin' : 'escalainmobiliariasabaneta'}/auth/login`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex-1 bg-escala-accent hover:bg-orange-600 text-white py-3 px-4 rounded-xl font-bold text-center transition-colors"
+                                        >
+                                            Pagos →
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         </BentoCard>

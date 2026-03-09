@@ -34,7 +34,7 @@ const Navbar = () => {
         return () => { document.body.style.overflow = ''; };
     }, [mobileMenuOpen]);
 
-    const darkHeroPages = ['/nosotros', '/sede-medellin'];
+    const darkHeroPages = ['/nosotros', '/sede-medellin', '/sede-sabaneta'];
     const isDarkHero = darkHeroPages.includes(location.pathname);
     const useLightText = isDarkHero && !scrolled;
 
@@ -48,21 +48,12 @@ const Navbar = () => {
             icon: '🏢'
         },
         { 
-            label: 'Propietarios',
+            label: 'Nuestras Sedes',
             href: '#',
-            icon: '🔑',
+            icon: '📍',
             children: [
                 { label: 'Sede Medellín', href: '/sede-medellin', isPage: true },
-                { label: 'Sede Sabaneta', href: '#' }
-            ]
-        },
-        { 
-            label: 'Arrendatarios', 
-            href: '#',
-            icon: '📋',
-            children: [
-                { label: 'Sede Medellín', href: '#' },
-                { label: 'Sede Sabaneta', href: '#' }
+                { label: 'Sede Sabaneta', href: '/sede-sabaneta', isPage: true }
             ]
         },
         { 
@@ -70,7 +61,7 @@ const Navbar = () => {
             href: '#',
             icon: '📄',
             children: [
-                { label: 'FinanzaCredito', href: '#' },
+                { label: 'FianzaCredito', href: '#' },
                 { label: 'Libertador', href: '#' }
             ]
         }
