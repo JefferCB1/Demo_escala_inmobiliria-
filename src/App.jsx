@@ -19,6 +19,7 @@ import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetail from './pages/PropertyDetail';
 import NosotrosPage from './pages/NosotrosPage';
 import SedeMedellinPage from './pages/SedeMedellinPage';
+import SedeSabanetaPage from './pages/SedeSabanetaPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -72,6 +73,7 @@ function App() {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/nosotros" element={<NosotrosPage />} />
                     <Route path="/sede-medellin" element={<SedeMedellinPage />} />
+                    <Route path="/sede-sabaneta" element={<SedeSabanetaPage />} />
                     <Route path="/propiedades" element={<PropertiesPage />} />
                     <Route path="/propiedad/:id" element={<PropertyDetail />} />
                 </Routes>
