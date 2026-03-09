@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -62,6 +63,7 @@ function HomePage() {
 
 function App() {
     return (
+        <HelmetProvider>
         <Router>
             <GlobalLayout>
                 <Navbar />
@@ -77,6 +79,7 @@ function App() {
                 <ExitIntentModal />
             </GlobalLayout>
         </Router>
+        </HelmetProvider>
     );
 }
 
