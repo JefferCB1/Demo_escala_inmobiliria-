@@ -34,7 +34,7 @@ const Navbar = () => {
         return () => { document.body.style.overflow = ''; };
     }, [mobileMenuOpen]);
 
-    const darkHeroPages = ['/nosotros'];
+    const darkHeroPages = ['/nosotros', '/sede-medellin'];
     const isDarkHero = darkHeroPages.includes(location.pathname);
     const useLightText = isDarkHero && !scrolled;
 
@@ -48,11 +48,11 @@ const Navbar = () => {
             icon: '🏢'
         },
         { 
-            label: 'Propietarios', 
+            label: 'Propietarios',
             href: '#',
             icon: '🔑',
             children: [
-                { label: 'Sede Medellín', href: '#' },
+                { label: 'Sede Medellín', href: '/sede-medellin', isPage: true },
                 { label: 'Sede Sabaneta', href: '#' }
             ]
         },
@@ -132,14 +132,25 @@ const Navbar = () => {
                     >
                         <div className="ml-10 mr-2 mb-2 space-y-1 border-l-2 border-orange-200 pl-3">
                             {link.children.map((child, childIndex) => (
-                                <a
-                                    key={childIndex}
-                                    href={child.href}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:text-escala-accent hover:bg-orange-50 rounded-xl transition-all"
-                                >
-                                    {child.label}
-                                </a>
+                                child.isPage ? (
+                                    <Link
+                                        key={childIndex}
+                                        to={child.href}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:text-escala-accent hover:bg-orange-50 rounded-xl transition-all"
+                                    >
+                                        {child.label}
+                                    </Link>
+                                ) : (
+                                    <a
+                                        key={childIndex}
+                                        href={child.href}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:text-escala-accent hover:bg-orange-50 rounded-xl transition-all"
+                                    >
+                                        {child.label}
+                                    </a>
+                                )
                             ))}
                         </div>
                     </div>

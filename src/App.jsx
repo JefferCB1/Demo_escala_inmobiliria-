@@ -18,6 +18,7 @@ import FloatingChatbot from './components/ui/FloatingChatbot';
 import PropertiesPage from './pages/PropertiesPage';
 import PropertyDetail from './pages/PropertyDetail';
 import NosotrosPage from './pages/NosotrosPage';
+import SedeMedellinPage from './pages/SedeMedellinPage';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -70,6 +71,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/nosotros" element={<NosotrosPage />} />
+                    <Route path="/sede-medellin" element={<SedeMedellinPage />} />
                     <Route path="/propiedades" element={<PropertiesPage />} />
                     <Route path="/propiedad/:id" element={<PropertyDetail />} />
                 </Routes>
