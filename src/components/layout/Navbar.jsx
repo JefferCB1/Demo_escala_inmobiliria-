@@ -34,6 +34,10 @@ const Navbar = () => {
         return () => { document.body.style.overflow = ''; };
     }, [mobileMenuOpen]);
 
+    const darkHeroPages = ['/nosotros'];
+    const isDarkHero = darkHeroPages.includes(location.pathname);
+    const useLightText = isDarkHero && !scrolled;
+
     const navLinks = [
         { label: 'Inicio', href: '/', isPage: true, icon: '🏠' },
         { label: 'Nosotros', href: '/nosotros', isPage: true, icon: '👥' },
@@ -74,9 +78,9 @@ const Navbar = () => {
 
     const renderLink = (link) => {
         if (link.isPage) {
-            return <Link to={link.href} className="hover:text-escala-accent transition-colors py-2">{link.label}</Link>;
+            return <Link to={link.href} className="hover:text-escala-accent transition-colors py-2 inherit">{link.label}</Link>;
         }
-        return <a href={link.href} className="hover:text-escala-accent transition-colors py-2">{link.label}</a>;
+        return <a href={link.href} className="hover:text-escala-accent transition-colors py-2 inherit">{link.label}</a>;
     };
 
     const renderChildLink = (child) => {
@@ -177,7 +181,7 @@ const Navbar = () => {
                 </div>
 
                 {/* Desktop Navigation */}
-                <div className="hidden lg:flex gap-6 xl:gap-8 text-escala-dark font-medium items-center">
+                <div className={`hidden lg:flex gap-6 xl:gap-8 font-medium items-center transition-colors duration-700 ${useLightText ? 'text-white' : 'text-escala-dark'}`}>
                     {navLinks.map((link, index) => (
                         <div key={index} className="relative group">
                             {link.children ? (
@@ -206,8 +210,8 @@ const Navbar = () => {
                         Te Asesoramos
                     </button>
                     {/* Mobile Menu Button */}
-                    <button 
-                        className="lg:hidden text-escala-dark p-2" 
+                    <button
+                        className={`lg:hidden p-2 transition-colors duration-700 ${useLightText ? 'text-white' : 'text-escala-dark'}`}
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                         aria-expanded={mobileMenuOpen}
                         aria-label="Toggle menu"
