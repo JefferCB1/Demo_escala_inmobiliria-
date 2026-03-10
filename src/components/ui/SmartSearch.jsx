@@ -69,18 +69,31 @@ export const SmartSearch = () => {
 
     return (
         <div className="w-full max-w-4xl mx-auto flex flex-col items-center px-4 sm:px-0">
-            {/* Tabs Arriendo / Venta */}
-            <div className="flex gap-1 bg-white/80 backdrop-blur-sm rounded-full p-1 shadow-md border border-gray-100 mb-4">
+            {/* Tabs Arriendo / Venta — sliding pill */}
+            <div className="relative flex bg-white/80 backdrop-blur-sm rounded-full p-1 shadow-md border border-gray-100 mb-4">
+                {/* Pastilla animada */}
+                <span
+                    aria-hidden="true"
+                    className="absolute inset-y-1 rounded-full"
+                    style={{
+                        width: 'calc(50% - 4px)',
+                        left: '4px',
+                        background: 'linear-gradient(135deg, #FF6B00, #e66000)',
+                        boxShadow: '0 4px 14px rgba(255,107,0,0.35)',
+                        transform: operacion === 'Venta' ? 'translateX(calc(100% + 8px))' : 'translateX(0)',
+                        transition: 'transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1)',
+                    }}
+                />
                 {['Arriendo', 'Venta'].map(op => (
                     <button
                         key={op}
                         type="button"
                         onClick={() => setOperacion(op)}
-                        className={`px-6 py-2 rounded-full text-sm font-bold transition-all duration-200 ${
-                            operacion === op
-                                ? 'bg-escala-accent text-white shadow-md shadow-orange-200'
-                                : 'text-gray-500 hover:text-escala-dark'
-                        }`}
+                        className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold"
+                        style={{
+                            color: operacion === op ? '#fff' : '#6b7280',
+                            transition: 'color 0.25s ease',
+                        }}
                     >
                         {op}
                     </button>
