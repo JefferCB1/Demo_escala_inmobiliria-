@@ -206,7 +206,7 @@ const NosotrosPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1973&auto=format&fit=crop"
+                                        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
                                         alt="Equipo de Escala Inmobiliaria trabajando con propietarios en asesoría personalizada"
                                         width="600"
                                         height="400"
@@ -231,7 +231,7 @@ const NosotrosPage = () => {
                             <div className="order-2 lg:order-1 relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+                                        src="https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=2070&auto=format&fit=crop"
                                         alt="Vista panorámica de edificios modernos en el Valle de Aburrá representando el crecimiento inmobiliario"
                                         width="600"
                                         height="400"

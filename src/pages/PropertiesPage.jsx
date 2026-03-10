@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const propiedades = [
   {
@@ -223,20 +223,36 @@ const formatPrice = (price) => {
 
 const PropertiesPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [filterTipo, setFilterTipo] = useState('todos');
   const [filterOperacion, setFilterOperacion] = useState('todos');
   const [filterUbicacion, setFilterUbicacion] = useState('todos');
+  const [filterHabitaciones, setFilterHabitaciones] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Apply URL params from SmartSearch
+  useEffect(() => {
+    const operacion = searchParams.get('operacion');
+    const tipo = searchParams.get('tipo');
+    const ciudad = searchParams.get('ciudad');
+    const habitaciones = searchParams.get('habitaciones');
+    if (operacion) setFilterOperacion(operacion);
+    if (tipo) setFilterTipo(tipo);
+    if (ciudad) setFilterUbicacion(ciudad);
+    if (habitaciones) setFilterHabitaciones(habitaciones);
+  }, [searchParams]);
 
   const filteredProperties = propiedades.filter(prop => {
     const matchesTipo = filterTipo === 'todos' || prop.tipo.toLowerCase().includes(filterTipo.toLowerCase());
     const matchesOperacion = filterOperacion === 'todos' || prop.operacion.toLowerCase() === filterOperacion.toLowerCase();
     const matchesUbicacion = filterUbicacion === 'todos' || prop.ubicacion.toLowerCase().includes(filterUbicacion.toLowerCase());
-    const matchesSearch = searchTerm === '' || 
+    const matchesHabitaciones = filterHabitaciones === 'todos' ||
+      (filterHabitaciones === '3+' ? prop.habitaciones >= 3 : prop.habitaciones === parseInt(filterHabitaciones));
+    const matchesSearch = searchTerm === '' ||
       prop.ubicacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
       prop.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       prop.id.includes(searchTerm);
-    return matchesTipo && matchesOperacion && matchesUbicacion && matchesSearch;
+    return matchesTipo && matchesOperacion && matchesUbicacion && matchesHabitaciones && matchesSearch;
   });
 
   const ubicaciones = [...new Set(propiedades.map(p => p.ubicacion.split(', ')[1] || p.ubicacion.split(', ')[0]))];
