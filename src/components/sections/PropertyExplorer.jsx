@@ -99,7 +99,7 @@ const PropertyExplorer = () => {
                                 <div className="space-y-3 mt-6">
                                     <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
                                         <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-2">Líneas de Atención</p>
-                                        <a href={`tel:${sede.telefono}`} className="block text-white font-semibold hover:text-orange-200 transition-colors">
+                                        <a href={`tel:${sede.telefono}`} className="block text-white font-semibold hover:text-orange-200 transition-colors text-sm">
                                             📞 {sede.telefono}
                                         </a>
                                     </div>
@@ -107,7 +107,7 @@ const PropertyExplorer = () => {
                                     <div className="flex gap-2">
                                         <Link 
                                             to={sede.link}
-                                            className="flex-1 bg-white text-gray-900 py-3 px-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                                            className="flex-1 bg-white text-gray-900 py-3 px-2 sm:px-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors flex items-center justify-center gap-1 text-xs sm:text-sm"
                                         >
                                             Ver Sede
                                         </Link>
@@ -115,7 +115,7 @@ const PropertyExplorer = () => {
                                             href={`https://simidocs.siminmobiliarias.com/base/simired/simidocsapi1.0/index.php?inmo=${sede.id === 'medellin' ? '1145' : '1272'}&tipo=2`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex-1 bg-white text-gray-900 py-3 px-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                                            className="flex-1 bg-white text-gray-900 py-3 px-2 sm:px-4 rounded-xl font-bold text-center hover:bg-gray-100 transition-colors flex items-center justify-center gap-1 text-xs sm:text-sm"
                                         >
                                             Arrendatarios
                                         </a>
@@ -126,7 +126,7 @@ const PropertyExplorer = () => {
                                             href={`https://pagos.palomma.com/${sede.id === 'medellin' ? 'escalainmobiliariamedellin' : 'escalainmobiliariasabaneta'}/auth/login`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex-1 bg-escala-accent hover:bg-orange-600 text-white py-3 px-4 rounded-xl font-bold text-center transition-colors"
+                                            className="flex-1 bg-escala-accent hover:bg-orange-600 text-white py-3 px-2 sm:px-4 rounded-xl font-bold text-center transition-colors text-xs sm:text-sm"
                                         >
                                             Pagos →
                                         </a>
