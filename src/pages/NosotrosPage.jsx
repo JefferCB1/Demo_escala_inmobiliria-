@@ -168,7 +168,7 @@ const NosotrosPage = () => {
                         Quienes Somos
                     </div>
                     <h1 className="nosotros-hero-text font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-                        Escalando juntos hacia{' '}
+                        Escalando juntos hacia<br />
                         <span className="text-escala-accent">tu mejor inversión</span>
                     </h1>
                     <p className="nosotros-hero-text text-base sm:text-lg md:text-xl text-gray-300 font-medium max-w-2xl px-4 sm:px-0">
