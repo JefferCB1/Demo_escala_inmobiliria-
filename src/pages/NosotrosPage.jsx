@@ -206,7 +206,7 @@ const NosotrosPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1932&auto=format&fit=crop"
+                                        src="/images/Equipo de ventas.jpg"
                                         alt="Equipo de ventas de Escala Inmobiliaria asesorando clientes"
                                         width="600"
                                         height="400"
@@ -231,7 +231,7 @@ const NosotrosPage = () => {
                             <div className="order-2 lg:order-1 relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="https://images.unsplash.com/photo-1616378788111-1b47f3427f1e?q=80&w=2070&auto=format&fit=crop"
+                                        src="/images/Edificios.jpg"
                                         alt="Edificios modernos de Medellín en el Valle de Aburrá"
                                         width="600"
                                         height="400"
