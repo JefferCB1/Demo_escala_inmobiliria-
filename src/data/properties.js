@@ -9,7 +9,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -22,7 +22,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -35,7 +35,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2080&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573006175341',
   },
   {
@@ -48,7 +48,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -61,7 +61,7 @@ export const propiedades = [
     habitaciones: 2,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573243233394',
   },
   {
@@ -74,7 +74,7 @@ export const propiedades = [
     habitaciones: 2,
     banos: 2,
     parqueadero: 0,
-    imagen: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -87,7 +87,7 @@ export const propiedades = [
     habitaciones: 2,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573006175341',
   },
   {
@@ -100,7 +100,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?q=80&w=1984&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -113,7 +113,7 @@ export const propiedades = [
     habitaciones: 2,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -126,7 +126,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -139,7 +139,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573243233394',
   },
   {
@@ -152,7 +152,7 @@ export const propiedades = [
     habitaciones: 1,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -165,7 +165,7 @@ export const propiedades = [
     habitaciones: 3,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -178,7 +178,7 @@ export const propiedades = [
     habitaciones: 2,
     banos: 2,
     parqueadero: 2,
-    imagen: 'https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573045335855',
   },
   {
@@ -191,7 +191,7 @@ export const propiedades = [
     habitaciones: 2,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573243233394',
   },
   {
@@ -204,7 +204,7 @@ export const propiedades = [
     habitaciones: 2,
     banos: 2,
     parqueadero: 1,
-    imagen: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop',
+    imagen: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=500&auto=format&fit=crop',
     whatsapp: '573243233394',
   },
 ];
