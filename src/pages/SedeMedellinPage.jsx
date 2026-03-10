@@ -123,8 +123,8 @@ const SedeMedellinPage = () => {
             <section ref={heroRef} aria-label="Sede Medellín de Escala Inmobiliaria" className="relative w-full min-h-[60vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 px-4 sm:px-6 overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <img
-                        src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop"
-                        alt="Sede Medellín Escala Inmobiliaria en el barrio Laureles"
+                        src="https://images.unsplash.com/photo-1592321675774-3de57f3019a6?q=80&w=2070&auto=format&fit=crop"
+                        alt="Edificio moderno en Laureles Medellín"
                         className="w-full h-full object-cover"
                         width="1920"
                         height="1080"
@@ -339,7 +339,7 @@ const SedeMedellinPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.2!2d-75.598!3d6.245!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMTQnNDIuMCJOIDc1wrAzNSc1Mi44Ilc!5e0!3m2!1ses!2sco!4v1234567890"
+                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.052044067442!2d-75.597778!3d6.245556!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e468355d47a3c3f%3A0x3044d9c1581f2c4!2sCra.%2035%20%2381-09%2C%20Medell%C3%ADn%2C%20Antioquia!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco"
                                         width="100%"
                                         height="350"
                                         style={{ border: 0 }}

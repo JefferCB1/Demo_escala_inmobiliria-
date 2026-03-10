@@ -121,7 +121,7 @@ const SedeSabanetaPage = () => {
             <section ref={heroRef} aria-label="Sede Sabaneta de Escala Inmobiliaria" className="relative w-full min-h-[60vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 px-4 sm:px-6 overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <img
-                        src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop"
+                        src="https://images.unsplash.com/photo-1577908955054-05db44e8c56c?q=80&w=2074&auto=format&fit=crop"
                         alt="Sede Sabaneta Escala Inmobiliaria en el sector parque"
                         className="w-full h-full object-cover"
                         width="1920"
@@ -337,7 +337,7 @@ const SedeSabanetaPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15867.733566160163!2d-75.62562479526715!3d6.1396264999999915!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e4683bc4cd0ca6d%3A0xe7f9a15c3ec0b968!2sParque%20de%20Sabaneta!5e0!3m2!1ses!2sco!4v1715000000000!5m2!1ses!2sco"
+                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.1446491445763!2d-75.62562479526715!3d6.202777777777778!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e4683bc4cd0ca6d%3A0xe7f9a15c3ec0b968!2sCra.%2045%20%2372%20Sur-07%2C%20Sabaneta%2C%20Antioquia!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco"
                                         width="100%"
                                         height="350"
                                         style={{ border: 0 }}
