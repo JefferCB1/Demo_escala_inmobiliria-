@@ -1,15 +1,20 @@
 import React from 'react';
 import LogoLoop from '../ui/LogoLoop';
 
+// h: altura de display en px — ajustada según ratio real de cada imagen
+// cien-cuadras 1827x342 ratio 5.34 → h pequeño para que no sea ribbon
+// lonja-medellin 896x311 ratio 2.88 → h medio
+// metrocuadrado 320x320 ratio 1.00 → cuadrado, necesita h grande
+// resto ~ratio 1.7-1.9 → h estándar
 const logos = [
-  { src: '/Logos/cien-cuadras.png', alt: 'Cien Cuadras', href: '#' },
-  { src: '/Logos/espaciourbano.png', alt: 'Espacio Urbano', href: '#' },
-  { src: '/Logos/FianzaCredito.png', alt: 'Fianza Credito', href: '#' },
-  { src: '/Logos/finca_raiz.png', alt: 'Finca Raiz', href: '#' },
-  { src: '/Logos/libertador.jpg', alt: 'Libertador', href: '#' },
-  { src: '/Logos/lonja-medellin.png', alt: 'Lonja Medellin', href: '#' },
-  { src: '/Logos/metrocuadrado.png', alt: 'Metro Cuadrado', href: '#' },
-  { src: '/Logos/simi.png', alt: 'Simi', href: '#' },
+  { src: '/Logos/cien-cuadras.png',    alt: 'Cien Cuadras',    href: '#', h: 32 },
+  { src: '/Logos/espaciourbano.png',   alt: 'Espacio Urbano',  href: '#', h: 46 },
+  { src: '/Logos/FianzaCredito.png',   alt: 'Fianza Credito',  href: '#', h: 46 },
+  { src: '/Logos/finca_raiz.png',      alt: 'Finca Raíz',      href: '#', h: 46 },
+  { src: '/Logos/libertador.jpg',      alt: 'Libertador',      href: '#', h: 46 },
+  { src: '/Logos/lonja-medellin.png',  alt: 'Lonja Medellín',  href: '#', h: 40 },
+  { src: '/Logos/metrocuadrado.png',   alt: 'Metro Cuadrado',  href: '#', h: 56 },
+  { src: '/Logos/simi.png',            alt: 'Simi',            href: '#', h: 46 },
 ];
 
 const LogoStrip = () => {
@@ -34,19 +39,17 @@ const LogoStrip = () => {
           pauseOnHover={true}
           ariaLabel="Portales inmobiliarios aliados"
           renderItem={(item) => (
-            <div style={{ width: '140px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '160px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <img
                 src={item.src}
                 alt={item.alt ?? ''}
                 loading="lazy"
                 draggable={false}
                 style={{
-                  maxHeight: '52px',
-                  maxWidth: '130px',
+                  height: `${item.h}px`,
                   width: 'auto',
-                  height: 'auto',
+                  maxWidth: '150px',
                   objectFit: 'contain',
-                  filter: 'grayscale(30%)',
                   opacity: 0.85,
                 }}
               />
