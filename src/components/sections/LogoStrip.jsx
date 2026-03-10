@@ -7,14 +7,14 @@ import LogoLoop from '../ui/LogoLoop';
 // metrocuadrado 320x320 ratio 1.00 → cuadrado, necesita h grande
 // resto ~ratio 1.7-1.9 → h estándar
 const logos = [
-  { src: '/Logos/cien-cuadras.png',    alt: 'Cien Cuadras',    href: '#', h: 32 },
-  { src: '/Logos/espaciourbano.png',   alt: 'Espacio Urbano',  href: '#', h: 46 },
-  { src: '/Logos/FianzaCredito.png',   alt: 'Fianza Credito',  href: '#', h: 46 },
-  { src: '/Logos/finca_raiz.png',      alt: 'Finca Raíz',      href: '#', h: 46 },
-  { src: '/Logos/libertador.jpg',      alt: 'Libertador',      href: '#', h: 46 },
-  { src: '/Logos/lonja-medellin.png',  alt: 'Lonja Medellín',  href: '#', h: 40 },
-  { src: '/Logos/metrocuadrado.png',   alt: 'Metro Cuadrado',  href: '#', h: 56 },
-  { src: '/Logos/simi.png',            alt: 'Simi',            href: '#', h: 46 },
+  { src: '/Logos/cien-cuadras.png',    alt: 'Cien Cuadras',    href: '#', h: 50  },
+  { src: '/Logos/espaciourbano.png',   alt: 'Espacio Urbano',  href: '#', h: 70  },
+  { src: '/Logos/FianzaCredito.png',   alt: 'Fianza Credito',  href: '#', h: 70  },
+  { src: '/Logos/finca_raiz.png',      alt: 'Finca Raíz',      href: '#', h: 70  },
+  { src: '/Logos/libertador.jpg',      alt: 'Libertador',      href: '#', h: 70  },
+  { src: '/Logos/lonja-medellin.png',  alt: 'Lonja Medellín',  href: '#', h: 60  },
+  { src: '/Logos/metrocuadrado.png',   alt: 'Metro Cuadrado',  href: '#', h: 80  },
+  { src: '/Logos/simi.png',            alt: 'Simi',            href: '#', h: 70  },
 ];
 
 const LogoStrip = () => {
@@ -29,17 +29,17 @@ const LogoStrip = () => {
         </p>
       </div>
       
-      <div style={{ height: '90px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ height: '110px', position: 'relative', overflow: 'hidden' }}>
         <LogoLoop
           logos={logos}
           speed={80}
           direction="left"
-          logoHeight={70}
-          gap={48}
+          logoHeight={90}
+          gap={60}
           pauseOnHover={true}
           ariaLabel="Portales inmobiliarios aliados"
           renderItem={(item) => (
-            <div style={{ width: '160px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '200px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <img
                 src={item.src}
                 alt={item.alt ?? ''}
@@ -48,9 +48,9 @@ const LogoStrip = () => {
                 style={{
                   height: `${item.h}px`,
                   width: 'auto',
-                  maxWidth: '150px',
+                  maxWidth: '190px',
                   objectFit: 'contain',
-                  opacity: 0.85,
+                  opacity: 0.9,
                 }}
               />
             </div>
