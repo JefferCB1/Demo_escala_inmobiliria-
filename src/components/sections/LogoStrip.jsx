@@ -24,15 +24,34 @@ const LogoStrip = () => {
         </p>
       </div>
       
-      <div style={{ height: '100px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ height: '90px', position: 'relative', overflow: 'hidden' }}>
         <LogoLoop
           logos={logos}
           speed={80}
           direction="left"
           logoHeight={70}
-          gap={80}
+          gap={48}
           pauseOnHover={true}
           ariaLabel="Portales inmobiliarios aliados"
+          renderItem={(item) => (
+            <div style={{ width: '140px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img
+                src={item.src}
+                alt={item.alt ?? ''}
+                loading="lazy"
+                draggable={false}
+                style={{
+                  maxHeight: '52px',
+                  maxWidth: '130px',
+                  width: 'auto',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  filter: 'grayscale(30%)',
+                  opacity: 0.85,
+                }}
+              />
+            </div>
+          )}
         />
       </div>
     </div>
