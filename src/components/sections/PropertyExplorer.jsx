@@ -14,7 +14,7 @@ const sedes = [
       servicios: '3244358376',
       facturacion: '3004155950'
     },
-    imagen: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
+    imagen: '/images/medellin-hero.png',
     color: 'from-emerald-600 to-teal-800',
     link: '/sede-medellin'
   },
@@ -28,7 +28,7 @@ const sedes = [
       reparaciones: '3008913228',
       servicios: '3005759048'
     },
-    imagen: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop',
+    imagen: '/images/sabaneta-hero.jpeg',
     color: 'from-orange-500 to-red-700',
     link: '/sede-sabaneta'
   }
