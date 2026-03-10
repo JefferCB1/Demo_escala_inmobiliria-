@@ -1,5 +1,90 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+
+const PAY_URL = 'https://pagos.palomma.com/escalainmobiliariamedellin/auth/login';
+
+const PayButton = () => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setOpen((v) => !v)}
+                className="group relative flex items-center gap-2 rounded-full font-semibold overflow-hidden transition-all duration-300 active:scale-95 px-3 py-2 text-xs lg:px-4 lg:py-2.5 lg:text-sm"
+                style={{
+                    background: 'linear-gradient(135deg, #1a3c6e 0%, #0f6cbf 100%)',
+                    color: '#fff',
+                    boxShadow: open
+                        ? '0 0 0 3px rgba(14,165,233,0.25), 0 4px 18px rgba(15,108,191,0.45)'
+                        : '0 4px 14px rgba(15,108,191,0.35)',
+                }}
+                aria-haspopup="true"
+                aria-expanded={open}
+            >
+                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    style={{ background: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.15) 50%, transparent 65%)' }} />
+                <svg className="relative w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <path d="M2 10h20" />
+                </svg>
+                <span className="relative hidden lg:inline whitespace-nowrap">Pagos en línea</span>
+                <svg className={`relative w-3 h-3 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-full mt-2.5 w-56 rounded-2xl overflow-hidden z-[200]"
+                    style={{
+                        boxShadow: '0 16px 48px rgba(15,108,191,0.15), 0 2px 8px rgba(0,0,0,0.07)',
+                        border: '1px solid rgba(14,165,233,0.12)',
+                        background: '#fff',
+                    }}>
+                    <div className="px-4 py-3 flex items-center justify-between"
+                        style={{ background: 'linear-gradient(135deg, #1a3c6e, #0f6cbf)' }}>
+                        <span className="text-xs font-bold text-white tracking-wide">Selecciona tu sede</span>
+                        <span className="px-2 py-0.5 rounded text-[9px] font-black tracking-widest"
+                            style={{ background: 'rgba(255,255,255,0.18)', color: '#bfdbfe' }}>PSE</span>
+                    </div>
+                    {[
+                        { label: 'Pago Medellín', sub: 'Sede Laureles' },
+                        { label: 'Pago Sabaneta', sub: 'Sede Parque' },
+                    ].map(({ label, sub }) => (
+                        <a key={label} href={PAY_URL} target="_blank" rel="noopener noreferrer"
+                            onClick={() => setOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3.5 hover:bg-sky-50 transition-colors group/item border-b border-gray-50 last:border-0">
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-slate-800 group-hover/item:text-sky-700 transition-colors leading-tight">{label}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
+                            </div>
+                            <svg className="w-4 h-4 text-gray-300 group-hover/item:text-sky-500 transition-all flex-shrink-0"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    ))}
+                    <div className="px-4 py-2.5 flex items-center gap-1.5 bg-slate-50">
+                        <svg className="w-3 h-3 text-green-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14l-3-3 1.41-1.41L11 12.17l4.59-4.58L17 9l-6 6z"/>
+                        </svg>
+                        <span className="text-[10px] text-gray-400 font-medium">Transacción segura · Palomma</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -188,6 +273,7 @@ const Navbar = () => {
                 </div>
 
                 <div className="flex gap-2 sm:gap-4 items-center">
+                    <PayButton />
                     {/* Mobile Menu Button */}
                     <button
                         className={`lg:hidden p-2 transition-colors duration-700 ${useLightText ? 'text-white' : 'text-escala-dark'}`}
