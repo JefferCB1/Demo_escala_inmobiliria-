@@ -166,8 +166,8 @@ const PropertiesPage = () => {
             )}
           </div>
 
-          {/* Filters row — scrollable en móvil */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {/* Filters row — wrap en móvil */}
+          <div className="flex flex-wrap items-center gap-2">
             <FilterSelect
               label="Tipo"
               value={filterTipo}
