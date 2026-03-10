@@ -290,7 +290,7 @@ const NosotrosPage = () => {
                 </section>
 
                 {/* CTA */}
-                <section className="nosotros-section opacity-0 translate-y-8 w-full py-20 sm:py-24 px-4 sm:px-6 bg-slate-50" aria-label="Contactar a Escala Inmobiliaria">
+                <section className="nosotros-section opacity-0 translate-y-8 w-full py-20 sm:py-24 px-4 sm:px-6 bg-white" aria-label="Contactar a Escala Inmobiliaria">
                     <div className="max-w-4xl mx-auto text-center">
                         <BentoCard className="relative overflow-hidden bg-gradient-to-br from-escala-dark to-slate-900 border-0 p-6 sm:p-10 md:p-16">
                             <div className="absolute inset-0 opacity-10"
