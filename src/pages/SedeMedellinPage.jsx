@@ -123,8 +123,8 @@ const SedeMedellinPage = () => {
             <section ref={heroRef} aria-label="Sede Medellín de Escala Inmobiliaria" className="relative w-full min-h-[60vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 px-4 sm:px-6 overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <img
-                        src="https://images.unsplash.com/photo-1592321675774-3de57f3019a6?q=80&w=2070&auto=format&fit=crop"
-                        alt="Edificio moderno en Laureles Medellín"
+                        src="/images/medellin-hero.png"
+                        alt="Sede Medellín Escala Inmobiliaria en el barrio Laureles"
                         className="w-full h-full object-cover"
                         width="1920"
                         height="1080"

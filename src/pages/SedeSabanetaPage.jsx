@@ -121,7 +121,7 @@ const SedeSabanetaPage = () => {
             <section ref={heroRef} aria-label="Sede Sabaneta de Escala Inmobiliaria" className="relative w-full min-h-[60vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 px-4 sm:px-6 overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <img
-                        src="https://images.unsplash.com/photo-1577908955054-05db44e8c56c?q=80&w=2074&auto=format&fit=crop"
+                        src="/images/sabaneta-hero.jpeg"
                         alt="Sede Sabaneta Escala Inmobiliaria en el sector parque"
                         className="w-full h-full object-cover"
                         width="1920"
