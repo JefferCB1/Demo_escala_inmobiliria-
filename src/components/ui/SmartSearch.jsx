@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const TIPOS = ['Apartamento', 'Apartaestudio', 'Casa'];
+const TIPOS = ['Apartamento', 'Apartaestudio', 'Casa', 'Casa Campestre', 'Casa Residencial', 'Oficina'];
 const CIUDADES = ['Sabaneta', 'Medellín', 'Itaguí', 'Envigado', 'La Estrella'];
 const HABITACIONES = ['1', '2', '3+'];
 
