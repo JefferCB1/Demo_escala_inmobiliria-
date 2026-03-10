@@ -147,32 +147,23 @@ const Navbar = () => {
     const useLightText = isDarkHero && !scrolled;
 
     const navLinks = [
-        { label: 'Inicio', href: '/', isPage: true, icon: '🏠' },
-        { label: 'Nosotros', href: '/nosotros', isPage: true, icon: '👥' },
-        { 
-            label: 'Propiedades', 
-            href: '/propiedades',
-            isPage: true,
-            icon: '🏢'
-        },
-        { 
+        { label: 'Inicio', href: '/', isPage: true },
+        { label: 'Nosotros', href: '/nosotros', isPage: true },
+        { label: 'Propiedades', href: '/propiedades', isPage: true },
+        {
             label: 'Nuestras Sedes',
-            href: '#',
-            icon: '📍',
             children: [
                 { label: 'Sede Medellín', href: '/sede-medellin', isPage: true },
-                { label: 'Sede Sabaneta', href: '/sede-sabaneta', isPage: true }
+                { label: 'Sede Sabaneta', href: '/sede-sabaneta', isPage: true },
             ]
         },
         {
             label: 'Formularios',
-            href: '#',
-            icon: '📄',
             children: [
                 { label: 'FianzaCredito', href: 'https://fianzacredito.com/index.php/formatos/' },
-                { label: 'Libertador', href: 'https://www.ellibertador.co/arrendatario' }
+                { label: 'Libertador', href: 'https://www.ellibertador.co/arrendatario' },
             ]
-        }
+        },
     ];
 
     const renderLink = (link) => {
@@ -198,45 +189,36 @@ const Navbar = () => {
         const isOpen = openAccordion === index;
         const isActive = location.pathname === link.href;
 
-        const handleClick = (e) => {
-            e.preventDefault();
-            setMobileMenuOpen(false);
-            if (link.isPage) {
-                window.location.href = link.href;
-            }
-        };
-
         if (hasChildren) {
             return (
-                <div className="overflow-hidden">
+                <div>
                     <button
                         onClick={() => toggleAccordion(index)}
-                        className={`w-full flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] ${
+                        className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] ${
                             isOpen ? 'bg-orange-50 text-escala-accent' : 'text-escala-dark hover:bg-gray-50'
                         }`}
                     >
-                        <span className="text-xl">{link.icon}</span>
                         <span className="font-semibold text-[15px] flex-1 text-left">{link.label}</span>
-                        <svg 
+                        <svg
                             className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180 text-escala-accent' : 'text-gray-400'}`}
                             fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    <div 
-                        className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                            isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
-                        }`}
-                    >
-                        <div className="ml-10 mr-2 mb-2 space-y-1 border-l-2 border-orange-200 pl-3">
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}>
+                        <div className="ml-4 mr-2 mt-1 mb-2 space-y-0.5 border-l-2 border-orange-200 pl-4">
                             {link.children.map((child, childIndex) => (
                                 child.isPage ? (
                                     <Link
                                         key={childIndex}
                                         to={child.href}
                                         onClick={() => setMobileMenuOpen(false)}
-                                        className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:text-escala-accent hover:bg-orange-50 rounded-xl transition-all"
+                                        className={`block py-2.5 px-3 text-sm font-medium rounded-xl transition-all ${
+                                            location.pathname === child.href
+                                                ? 'text-escala-accent bg-orange-50'
+                                                : 'text-gray-600 hover:text-escala-accent hover:bg-orange-50'
+                                        }`}
                                     >
                                         {child.label}
                                     </Link>
@@ -244,6 +226,8 @@ const Navbar = () => {
                                     <a
                                         key={childIndex}
                                         href={child.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:text-escala-accent hover:bg-orange-50 rounded-xl transition-all"
                                     >
@@ -257,24 +241,20 @@ const Navbar = () => {
             );
         }
 
-        const content = (
-            <div
-                onClick={handleClick}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-200 active:scale-[0.98] cursor-pointer ${
-                    isActive 
-                        ? 'bg-escala-accent text-white shadow-md shadow-orange-200' 
+        return (
+            <Link
+                to={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] ${
+                    isActive
+                        ? 'bg-escala-accent text-white shadow-md shadow-orange-200'
                         : 'text-escala-dark hover:bg-gray-50'
                 }`}
             >
-                <span className="text-xl">{link.icon}</span>
-                <span className="font-semibold text-[15px]">{link.label}</span>
-                {isActive && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full" />
-                )}
-            </div>
+                <span className="font-semibold text-[15px] flex-1">{link.label}</span>
+                {isActive && <div className="w-2 h-2 bg-white rounded-full" />}
+            </Link>
         );
-
-        return content;
     };
 
     return (
