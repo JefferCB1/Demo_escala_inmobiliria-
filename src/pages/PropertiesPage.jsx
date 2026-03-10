@@ -361,6 +361,22 @@ const PropertiesPage = () => {
                 </div>
               </div>
 
+              {/* Habitaciones */}
+              <div className="relative group">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 hover:border-escala-accent hover:bg-orange-50 transition-all duration-200 text-sm font-medium text-gray-600">
+                  <span>{filterHabitaciones === 'todos' ? 'Habs' : filterHabitaciones + ' Habs'}</span>
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-40 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <button onClick={() => setFilterHabitaciones('todos')} className={`w-full text-left px-4 py-2.5 hover:bg-orange-50 transition-colors ${filterHabitaciones === 'todos' ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>Cualquiera</button>
+                  <button onClick={() => setFilterHabitaciones('1')} className={`w-full text-left px-4 py-2.5 hover:bg-orange-50 transition-colors ${filterHabitaciones === '1' ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>1 Habitación</button>
+                  <button onClick={() => setFilterHabitaciones('2')} className={`w-full text-left px-4 py-2.5 hover:bg-orange-50 transition-colors ${filterHabitaciones === '2' ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>2 Habitaciones</button>
+                  <button onClick={() => setFilterHabitaciones('3')} className={`w-full text-left px-4 py-2.5 hover:bg-orange-50 transition-colors ${filterHabitaciones === '3+' ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>3+ Habitaciones</button>
+                </div>
+              </div>
+
               {/* Search Button */}
               <button className="bg-escala-accent hover:bg-[#e66000] text-white px-6 py-2.5 rounded-full font-bold transition-all duration-300 shadow-[0_4px_15px_rgba(255,107,0,0.4)] flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
