@@ -99,7 +99,7 @@ const Hero = () => {
     }, []);
 
     return (
-        <section ref={containerRef} className="relative w-full min-h-screen flex items-center justify-center pt-20 sm:pt-24 px-4 sm:px-6 overflow-hidden bg-slate-50">
+        <section ref={containerRef} className="relative w-full min-h-screen flex items-center justify-center pt-20 sm:pt-24 px-4 sm:px-6 overflow-x-hidden bg-slate-50">
             {/* Bright Background Video with Soft Overlay */}
             <div className="absolute inset-0 z-0 overflow-hidden bg-slate-100">
                 <video
