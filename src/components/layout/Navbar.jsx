@@ -54,9 +54,9 @@ const PayButton = () => {
                     </div>
                     {/* Options */}
                     {[
-                        { label: 'Pago Medellín', sub: 'Sede Laureles', icon: '🏙️' },
-                        { label: 'Pago Sabaneta', sub: 'Sede Parque', icon: '🌿' },
-                    ].map(({ label, sub, icon }) => (
+                        { label: 'Pago Medellín', sub: 'Sede Laureles' },
+                        { label: 'Pago Sabaneta', sub: 'Sede Parque' },
+                    ].map(({ label, sub }) => (
                         <a
                             key={label}
                             href={PAY_URL}
@@ -65,7 +65,6 @@ const PayButton = () => {
                             onClick={() => setOpen(false)}
                             className="flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors group/item border-b border-gray-50 last:border-0"
                         >
-                            <span className="text-xl leading-none">{icon}</span>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-bold text-slate-800 group-hover/item:text-sky-700 transition-colors">{label}</p>
                                 <p className="text-xs text-gray-400">{sub}</p>
@@ -355,9 +354,9 @@ const Navbar = () => {
                             Pago en Línea
                         </p>
                         {[
-                            { label: 'Pago Medellín', sub: 'Sede Laureles', icon: '🏙️' },
-                            { label: 'Pago Sabaneta', sub: 'Sede Parque', icon: '🌿' },
-                        ].map(({ label, sub, icon }) => (
+                            { label: 'Pago Medellín', sub: 'Sede Laureles' },
+                            { label: 'Pago Sabaneta', sub: 'Sede Parque' },
+                        ].map(({ label, sub }) => (
                             <a
                                 key={label}
                                 href={PAY_URL}
@@ -367,7 +366,6 @@ const Navbar = () => {
                                 className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-bold text-sm text-white active:scale-[0.98] transition-all"
                                 style={{ background: 'linear-gradient(135deg, #1a3c6e 0%, #0f6cbf 100%)', boxShadow: '0 4px 14px rgba(15,108,191,0.35)' }}
                             >
-                                <span className="text-lg">{icon}</span>
                                 <div className="flex-1 text-left">
                                     <p className="font-bold text-sm leading-tight">{label}</p>
                                     <p className="text-[10px] text-sky-200 font-medium">{sub}</p>
