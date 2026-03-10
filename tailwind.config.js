@@ -26,7 +26,7 @@ colors: {
                 'shimmer': 'shimmer 2.5s linear infinite',
                 'slideUp': 'slideUp 0.5s ease-out',
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                'marquee': 'marquee 25s linear infinite',
+                'marquee': 'marquee 15s linear infinite',
             },
             keyframes: {
                 shimmer: {
