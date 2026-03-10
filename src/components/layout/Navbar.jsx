@@ -56,13 +56,13 @@ const Navbar = () => {
                 { label: 'Sede Sabaneta', href: '/sede-sabaneta', isPage: true }
             ]
         },
-        { 
-            label: 'Formularios', 
+        {
+            label: 'Formularios',
             href: '#',
             icon: '📄',
             children: [
-                { label: 'FianzaCredito', href: '#' },
-                { label: 'Libertador', href: '#' }
+                { label: 'FianzaCredito', href: 'https://fianzacredito.com/index.php/formatos/' },
+                { label: 'Libertador', href: 'https://www.ellibertador.co/arrendatario' }
             ]
         }
     ];
