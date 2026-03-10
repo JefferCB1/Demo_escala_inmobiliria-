@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
+import { formatPrice } from '../utils/formatters';
 
 const mockProperty = {
   id: '1272-733',
@@ -71,18 +73,42 @@ const PropertyDetail = () => {
     return () => clearInterval(interval);
   }, [property.imagenes.length]);
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(price);
-  };
-
   const displayedFeatures = showAllFeatures ? property.caracteristicas : property.caracteristicas.slice(0, 8);
+
+  const schemaData = {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    name: property.titulo,
+    description: property.descripcion,
+    url: `https://escalainmobiliaria.com.co/propiedad/${property.id}`,
+    image: property.imagenes[0],
+    numberOfRooms: property.alcobas,
+    floorSize: { '@type': 'QuantitativeValue', value: property.area, unitCode: 'MTK' },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: property.ubicacion,
+      addressRegion: property.departamento,
+      addressCountry: 'CO',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: property.precio,
+      priceCurrency: 'COP',
+      availability: 'https://schema.org/InStock',
+    },
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Helmet>
+        <title>{property.titulo} | Escala Inmobiliaria</title>
+        <meta name="description" content={`${property.tipo} en ${property.operacion.toLowerCase()} en ${property.ubicacion}. ${property.alcobas} alcobas, ${property.banos} baños, ${property.area}m². Código ${property.codigo}. Contáctanos por WhatsApp.`} />
+        <link rel="canonical" href={`https://escalainmobiliaria.com.co/propiedad/${property.id}`} />
+        <meta property="og:title" content={property.titulo} />
+        <meta property="og:description" content={`${property.tipo} en ${property.ubicacion} - ${property.area}m² · ${property.alcobas} alcobas · Código ${property.codigo}`} />
+        <meta property="og:image" content={property.imagenes[0]} />
+        <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
+      </Helmet>
       <Navbar />
       
       <main className="pt-24 pb-16">

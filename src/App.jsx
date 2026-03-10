@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
 function ScrollToTop() {
@@ -23,11 +23,11 @@ import PortalLinks from './components/ui/PortalLinks';
 import { StickyBottomBar } from './components/ui/StickyBottomBar';
 import { ExitIntentModal } from './components/ui/ExitIntentModal';
 import FloatingChatbot from './components/ui/FloatingChatbot';
-import PropertiesPage from './pages/PropertiesPage';
-import PropertyDetail from './pages/PropertyDetail';
-import NosotrosPage from './pages/NosotrosPage';
-import SedeMedellinPage from './pages/SedeMedellinPage';
-import SedeSabanetaPage from './pages/SedeSabanetaPage';
+const PropertiesPage = lazy(() => import('./pages/PropertiesPage'));
+const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
+const NosotrosPage = lazy(() => import('./pages/NosotrosPage'));
+const SedeMedellinPage = lazy(() => import('./pages/SedeMedellinPage'));
+const SedeSabanetaPage = lazy(() => import('./pages/SedeSabanetaPage'));
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -78,6 +78,7 @@ function App() {
             <GlobalLayout>
                 <ScrollToTop />
                 <Navbar />
+                <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-escala-accent border-t-transparent rounded-full animate-spin" /></div>}>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/nosotros" element={<NosotrosPage />} />
@@ -86,6 +87,7 @@ function App() {
                     <Route path="/propiedades" element={<PropertiesPage />} />
                     <Route path="/propiedad/:id" element={<PropertyDetail />} />
                 </Routes>
+                </Suspense>
                 <Footer />
                 <StickyBottomBar />
                 <FloatingChatbot />

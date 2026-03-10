@@ -104,8 +104,8 @@ const Footer = () => {
             <div className="max-w-7xl mx-auto px-6 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-gray-400">
                 <p>&copy; {new Date().getFullYear()} Escala Inmobiliaria. Todos los derechos reservados. TAE SAS.</p>
                 <div className="flex gap-6">
-                    <a href="#" className="hover:text-escala-accent transition-colors">Términos de Servicio</a>
-                    <a href="#" className="hover:text-escala-accent transition-colors">Políticas de Privacidad</a>
+                    <a href="https://wa.me/573009122101?text=Quiero%20conocer%20los%20términos%20de%20servicio" target="_blank" rel="noopener noreferrer" className="hover:text-escala-accent transition-colors">Términos de Servicio</a>
+                    <a href="https://wa.me/573009122101?text=Quiero%20conocer%20las%20políticas%20de%20privacidad" target="_blank" rel="noopener noreferrer" className="hover:text-escala-accent transition-colors">Políticas de Privacidad</a>
                 </div>
             </div>
         </footer>

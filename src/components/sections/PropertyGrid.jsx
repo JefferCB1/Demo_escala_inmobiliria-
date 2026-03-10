@@ -1,67 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { propiedades as allPropiedades } from '../../data/properties';
+import { formatPrice } from '../../utils/formatters';
 
-const propiedades = [
-  {
-    id: '1272-341',
-    tipo: 'Apartamento',
-    precio: 2700000,
-    ubicacion: 'Prados De Sabaneta',
-    area: 70,
-    habitaciones: 3,
-    imagen: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=400&auto=format&fit=crop',
-    whatsapp: '573045335855'
-  },
-  {
-    id: '1272-733',
-    tipo: 'Apartamento',
-    precio: 1800000,
-    ubicacion: 'Vereda San Jose',
-    area: 60,
-    habitaciones: 3,
-    imagen: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=400&auto=format&fit=crop',
-    whatsapp: '573045335855'
-  },
-  {
-    id: '1272-1053',
-    tipo: 'Apartamento',
-    precio: 2000000,
-    ubicacion: 'La Aldea',
-    area: 60,
-    habitaciones: 3,
-    imagen: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=400&auto=format&fit=crop',
-    whatsapp: '573006175341'
-  },
-  {
-    id: '1272-470',
-    tipo: 'Apartamento',
-    precio: 2800000,
-    ubicacion: 'Los Alcazares',
-    area: 78,
-    habitaciones: 2,
-    imagen: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?q=80&w=400&auto=format&fit=crop',
-    whatsapp: '573045335855'
-  },
-  {
-    id: '1272-1048',
-    tipo: 'Apartamento',
-    precio: 3000000,
-    ubicacion: 'Las Flores',
-    area: 70,
-    habitaciones: 2,
-    imagen: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400&auto=format&fit=crop',
-    whatsapp: '573006175341'
-  }
-];
-
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(price);
-};
+// Show only the first 5 on the home page marquee
+const propiedades = allPropiedades.slice(0, 5);
 
 const PropertyCard = ({ propiedad }) => (
   <div className="flex-shrink-0 w-64 sm:w-72 bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200 hover:-translate-y-1 flex flex-col">
