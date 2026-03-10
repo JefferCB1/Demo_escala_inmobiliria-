@@ -1,5 +1,90 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+
+const PAY_URL = 'https://pagos.palomma.com/escalainmobiliariamedellin/auth/login';
+
+const PayButton = () => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        const handler = (e) => {
+            if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setOpen((v) => !v)}
+                className="group relative flex items-center gap-2 pl-3 pr-4 py-2 rounded-full font-bold text-sm overflow-hidden transition-all duration-300 active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #1a3c6e 0%, #0f6cbf 60%, #0ea5e9 100%)', color: '#fff', boxShadow: open ? '0 0 0 3px rgba(14,165,233,0.3), 0 4px 18px rgba(15,108,191,0.45)' : '0 4px 14px rgba(15,108,191,0.4)' }}
+                aria-haspopup="true"
+                aria-expanded={open}
+            >
+                {/* shimmer */}
+                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%)', backgroundSize: '200% 100%', animation: open ? 'none' : undefined }} />
+                {/* Card icon */}
+                <span className="relative flex items-center justify-center w-6 h-6 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }}>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="5" width="20" height="14" rx="2" />
+                        <path d="M2 10h20" />
+                    </svg>
+                </span>
+                <span className="relative tracking-wide whitespace-nowrap">Pagar PSE</span>
+                {/* PSE badge */}
+                <span className="relative px-1.5 py-0.5 rounded text-[9px] font-black tracking-wider" style={{ background: 'rgba(255,255,255,0.18)', color: '#bfdbfe', letterSpacing: '0.12em' }}>PSE</span>
+                <svg className={`relative w-3 h-3 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            {/* Dropdown */}
+            {open && (
+                <div className="absolute right-0 top-full mt-2.5 w-52 rounded-2xl overflow-hidden z-[200]"
+                    style={{ boxShadow: '0 12px 40px rgba(15,108,191,0.18), 0 2px 8px rgba(0,0,0,0.08)', border: '1px solid rgba(14,165,233,0.15)', background: '#fff' }}>
+                    {/* Header */}
+                    <div className="px-4 py-2.5 flex items-center gap-2" style={{ background: 'linear-gradient(135deg, #1a3c6e, #0f6cbf)' }}>
+                        <svg className="w-4 h-4 text-sky-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        <span className="text-xs font-bold text-sky-100 tracking-wide uppercase">Pago en línea seguro</span>
+                    </div>
+                    {/* Options */}
+                    {[
+                        { label: 'Pago Medellín', sub: 'Sede Laureles', icon: '🏙️' },
+                        { label: 'Pago Sabaneta', sub: 'Sede Parque', icon: '🌿' },
+                    ].map(({ label, sub, icon }) => (
+                        <a
+                            key={label}
+                            href={PAY_URL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setOpen(false)}
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-sky-50 transition-colors group/item border-b border-gray-50 last:border-0"
+                        >
+                            <span className="text-xl leading-none">{icon}</span>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-slate-800 group-hover/item:text-sky-700 transition-colors">{label}</p>
+                                <p className="text-xs text-gray-400">{sub}</p>
+                            </div>
+                            <svg className="w-4 h-4 text-gray-300 group-hover/item:text-sky-500 group-hover/item:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    ))}
+                    {/* Footer note */}
+                    <div className="px-4 py-2 flex items-center gap-1.5" style={{ background: '#f8fafc' }}>
+                        <svg className="w-3 h-3 text-green-500 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm-1 14.414l-3.707-3.707 1.414-1.414L11 13.586l5.293-5.293 1.414 1.414L11 16.414z"/></svg>
+                        <span className="text-[10px] text-gray-400 font-medium">Transacción 100% segura · Palomma</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -208,9 +293,7 @@ const Navbar = () => {
                 </div>
 
                 <div className="flex gap-2 sm:gap-4 items-center">
-                    <button className="px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 bg-escala-accent text-white rounded-full hover:bg-[#e66000] hover:shadow-lg hover:-translate-y-0.5 transition-all active:scale-95 font-semibold text-xs sm:text-sm shadow-md whitespace-nowrap">
-                        Te Asesoramos
-                    </button>
+                    <PayButton />
                     {/* Mobile Menu Button */}
                     <button
                         className={`lg:hidden p-2 transition-colors duration-700 ${useLightText ? 'text-white' : 'text-escala-dark'}`}
@@ -266,13 +349,32 @@ const Navbar = () => {
                     </div>
 
                     {/* Menu Footer CTA */}
-                    <div className="p-5 border-t border-gray-100 bg-gray-50/50">
-                        <button className="w-full bg-gradient-to-r from-escala-accent to-orange-500 text-white py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-orange-200 hover:shadow-xl hover:shadow-orange-300 transition-all active:scale-[0.98]">
-                            📞 Te Asesoramos Gratis
-                        </button>
-                        <p className="text-center text-xs text-gray-400 mt-3">
-                            Llámanos al <span className="font-semibold text-gray-500">304 533 5855</span>
+                    <div className="p-5 border-t border-gray-100 bg-gray-50/50 space-y-2">
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                            Pago en Línea
                         </p>
+                        {[
+                            { label: 'Pago Medellín', sub: 'Sede Laureles', icon: '🏙️' },
+                            { label: 'Pago Sabaneta', sub: 'Sede Parque', icon: '🌿' },
+                        ].map(({ label, sub, icon }) => (
+                            <a
+                                key={label}
+                                href={PAY_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-bold text-sm text-white active:scale-[0.98] transition-all"
+                                style={{ background: 'linear-gradient(135deg, #1a3c6e 0%, #0f6cbf 100%)', boxShadow: '0 4px 14px rgba(15,108,191,0.35)' }}
+                            >
+                                <span className="text-lg">{icon}</span>
+                                <div className="flex-1 text-left">
+                                    <p className="font-bold text-sm leading-tight">{label}</p>
+                                    <p className="text-[10px] text-sky-200 font-medium">{sub}</p>
+                                </div>
+                                <span className="text-[9px] font-black px-1.5 py-0.5 rounded tracking-wider" style={{ background: 'rgba(255,255,255,0.15)', color: '#bfdbfe' }}>PSE</span>
+                            </a>
+                        ))}
                     </div>
                 </div>
             </div>
