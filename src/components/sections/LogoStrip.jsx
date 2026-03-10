@@ -15,6 +15,7 @@ const logos = [
   { src: '/Logos/lonja-medellin.png',  alt: 'Lonja Medellín',  href: '#', h: 60  },
   { src: '/Logos/metrocuadrado.png',   alt: 'Metro Cuadrado',  href: '#', h: 100 },
   { src: '/Logos/simi.png',            alt: 'Simi',            href: '#', h: 70  },
+  { src: '/Logos/Logo-Fenalco.png',   alt: 'Fenalco Antioquia', href: '#', h: 90  },
 ];
 
 const LogoStrip = () => {
