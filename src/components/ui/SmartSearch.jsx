@@ -80,7 +80,7 @@ export const SmartSearch = () => {
                         left: '4px',
                         background: 'linear-gradient(135deg, #FF6B00, #e66000)',
                         boxShadow: '0 4px 14px rgba(255,107,0,0.35)',
-                        transform: operacion === 'Venta' ? 'translateX(calc(100% + 8px))' : 'translateX(0)',
+                        transform: operacion === 'Venta' ? 'translateX(100%)' : 'translateX(0)',
                         transition: 'transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1)',
                     }}
                 />
