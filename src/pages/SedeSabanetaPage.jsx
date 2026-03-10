@@ -337,7 +337,7 @@ const SedeSabanetaPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.1446491445763!2d-75.62562479526715!3d6.202777777777778!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e4683bc4cd0ca6d%3A0xe7f9a15c3ec0b968!2sCra.%2045%20%2372%20Sur-07%2C%20Sabaneta%2C%20Antioquia!5e0!3m2!1ses!2sco!4v1700000000000!5m2!1ses!2sco"
+                                        src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d1983.8026833843753!2d-75.6256247!3d6.2027777!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1sCra.%2045%20%2372%20Sur%2007%20Sabaneta!5e0!3m2!1ses!2sco!4v1730000000000!5m2!1ses!2sco"
                                         width="100%"
                                         height="350"
                                         style={{ border: 0 }}
