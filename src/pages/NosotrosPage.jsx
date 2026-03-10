@@ -206,8 +206,8 @@ const NosotrosPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
-                                        alt="Equipo de Escala Inmobiliaria trabajando con propietarios en asesoría personalizada"
+                                        src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=1932&auto=format&fit=crop"
+                                        alt="Equipo de ventas de Escala Inmobiliaria asesorando clientes"
                                         width="600"
                                         height="400"
                                         loading="lazy"
@@ -231,8 +231,8 @@ const NosotrosPage = () => {
                             <div className="order-2 lg:order-1 relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?q=80&w=2070&auto=format&fit=crop"
-                                        alt="Vista panorámica de edificios modernos en el Valle de Aburrá representando el crecimiento inmobiliario"
+                                        src="https://images.unsplash.com/photo-1616378788111-1b47f3427f1e?q=80&w=2070&auto=format&fit=crop"
+                                        alt="Edificios modernos de Medellín en el Valle de Aburrá"
                                         width="600"
                                         height="400"
                                         loading="lazy"
