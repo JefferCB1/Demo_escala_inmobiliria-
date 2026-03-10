@@ -13,7 +13,7 @@ const logos = [
   { src: '/Logos/finca_raiz.png',      alt: 'Finca Raíz',      href: '#', h: 70  },
   { src: '/Logos/libertador.jpg',      alt: 'Libertador',      href: '#', h: 70  },
   { src: '/Logos/lonja-medellin.png',  alt: 'Lonja Medellín',  href: '#', h: 60  },
-  { src: '/Logos/metrocuadrado.png',   alt: 'Metro Cuadrado',  href: '#', h: 80  },
+  { src: '/Logos/metrocuadrado.png',   alt: 'Metro Cuadrado',  href: '#', h: 100 },
   { src: '/Logos/simi.png',            alt: 'Simi',            href: '#', h: 70  },
 ];
 
