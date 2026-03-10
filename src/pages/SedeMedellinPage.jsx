@@ -339,7 +339,7 @@ const SedeMedellinPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <iframe
-                                        src="https://www.google.com/maps/embed?pb=!1m16!1m12!1m3!1d1983.8026833843753!2d-75.5975002!3d6.245556!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!2m1!1sCra.%2035%20%2381-09%20Laureles%20Medell%C3%ADn!5e0!3m2!1ses!2sco!4v1730000000000!5m2!1ses!2sco"
+                                        src="https://maps.google.com/maps?q=Cl.+35+%2381-9,+Laureles,+Medell%C3%ADn,+Antioquia,+Colombia&z=17&output=embed"
                                         width="100%"
                                         height="350"
                                         style={{ border: 0 }}
