@@ -27,7 +27,7 @@ const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
             </button>
 
             {open && (
-                <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
+                <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200]">
                     <button
                         type="button"
                         onMouseDown={() => { onChange(''); setOpen(false); }}

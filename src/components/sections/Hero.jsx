@@ -138,7 +138,7 @@ const Hero = () => {
                 </p>
 
                 {/* Smart Search injected here */}
-                <div className="hero-search w-full">
+                <div className="hero-search w-full relative z-30">
                     <SmartSearch />
                 </div>
 
