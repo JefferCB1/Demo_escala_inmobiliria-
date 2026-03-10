@@ -35,23 +35,25 @@ function HomePage() {
     const mainRef = useRef(null);
 
     useGSAP(() => {
-        const sections = document.querySelectorAll('.page-section');
-        
+        const sections = mainRef.current.querySelectorAll('.page-section');
+
         sections.forEach((section, i) => {
             if (i === 0) return;
-            
-            gsap.fromTo(section, 
-                { opacity: 0, y: 40 },
+
+            gsap.fromTo(section,
+                { opacity: 0, y: 30, force3D: true },
                 {
                     opacity: 1,
                     y: 0,
-                    duration: 0.8,
-                    ease: "power3.out",
+                    force3D: true,
+                    duration: 0.7,
+                    ease: "power2.out",
                     scrollTrigger: {
                         trigger: section,
-                        start: "top 85%",
-                        end: "top 45%",
-                        scrub: 0.8,
+                        start: "top 88%",
+                        end: "top 55%",
+                        scrub: false,
+                        once: true,
                     },
                 }
             );
@@ -62,10 +64,10 @@ function HomePage() {
         <>
             <main ref={mainRef} className="flex-1 relative z-10 w-full md:mb-0">
                 <div className="page-section"><Hero /></div>
-                <div className="page-section opacity-0 translate-y-8"><PropertyGrid /></div>
-                <div className="page-section opacity-0 translate-y-8"><PropertyExplorer /></div>
-                <div className="page-section opacity-0 translate-y-8"><PortalLinks /></div>
-                <div className="page-section opacity-0 translate-y-8"><Testimonials /></div>
+                <div className="page-section"><PropertyGrid /></div>
+                <div className="page-section"><PropertyExplorer /></div>
+                <div className="page-section"><PortalLinks /></div>
+                <div className="page-section"><Testimonials /></div>
             </main>
         </>
     );

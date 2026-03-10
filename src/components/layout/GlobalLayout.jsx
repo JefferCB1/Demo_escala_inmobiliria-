@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const GlobalLayout = ({ children }) => {
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const highlightRef = useRef(null);
 
     useEffect(() => {
+        const el = highlightRef.current;
+        if (!el) return;
         const handleMouseMove = (e) => {
-            setMousePos({ x: e.clientX, y: e.clientY });
+            const offset = window.innerWidth * 0.15;
+            el.style.transform = `translate(${e.clientX - offset}px, ${e.clientY - offset}px)`;
         };
-        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
@@ -21,14 +24,16 @@ const GlobalLayout = ({ children }) => {
                 }}>
             </div>
 
-            {/* Pointer-trailing soft highlight */}
+            {/* Pointer-trailing soft highlight — DOM-only update, no React re-render */}
             <div
-                className="pointer-events-none fixed z-0 rounded-full blur-[100px] transition-transform duration-700 ease-out"
+                ref={highlightRef}
+                className="pointer-events-none fixed z-0 rounded-full blur-[100px]"
                 style={{
                     width: '30vw',
                     height: '30vw',
                     background: 'radial-gradient(circle, rgba(255,107,0,0.08) 0%, rgba(255,107,0,0) 70%)',
-                    transform: `translate(${mousePos.x - window.innerWidth * 0.15}px, ${mousePos.y - window.innerWidth * 0.15}px)`
+                    willChange: 'transform',
+                    transition: 'transform 0.7s ease-out',
                 }}
             />
 
