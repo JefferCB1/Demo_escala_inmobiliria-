@@ -207,17 +207,12 @@ const NosotrosPage = () => {
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
                                         src="/images/Equipo de ventas.jpg"
-                                        alt="Equipo de ventas de Escala Inmobiliaria asesorando clientes"
+                                        alt="Equipo de ventas de Escala Inmobiliaria"
                                         width="600"
                                         height="400"
                                         loading="lazy"
-                                        className="w-full h-[280px] sm:h-[350px] md:h-[400px] object-cover"
+                                        className="w-full h-[280px] sm:h-[350px] md:h-[400px] object-cover rounded-2xl"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-escala-dark/60 via-transparent to-transparent"></div>
-                                    <div className="absolute bottom-6 left-6 right-6">
-                                        <p className="text-white font-heading font-bold text-lg">Soluciones prácticas y ágiles</p>
-                                        <p className="text-white/70 text-sm font-medium">Para propietarios e inquilinos</p>
-                                    </div>
                                 </BentoCard>
                             </div>
                         </div>
@@ -232,17 +227,12 @@ const NosotrosPage = () => {
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
                                         src="/images/Edificios.jpg"
-                                        alt="Edificios modernos de Medellín en el Valle de Aburrá"
+                                        alt="Edificios modernos de Medellín"
                                         width="600"
                                         height="400"
                                         loading="lazy"
-                                        className="w-full h-[280px] sm:h-[350px] md:h-[400px] object-cover"
+                                        className="w-full h-[280px] sm:h-[350px] md:h-[400px] object-cover rounded-2xl"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-escala-dark/60 via-transparent to-transparent"></div>
-                                    <div className="absolute bottom-6 left-6 right-6">
-                                        <p className="text-white font-heading font-bold text-lg">Crecimiento acelerado</p>
-                                        <p className="text-white/70 text-sm font-medium">Rompiendo estándares del mercado</p>
-                                    </div>
                                 </BentoCard>
                             </div>
 
