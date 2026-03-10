@@ -1,51 +1,38 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { propiedades } from '../data/properties';
 import { formatPrice } from '../utils/formatters';
 
-// Dropdown controlado con click — funciona en touch y desktop
-const FilterSelect = ({ label, value, onChange, options }) => {
+const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  const activeLabel = options.find(o => o.value === value)?.label ?? label;
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    document.addEventListener('touchstart', handler);
-    return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('touchstart', handler); };
-  }, []);
-
   return (
-    <div ref={ref} className="relative">
+    <div className="relative flex-1 min-w-0">
       <button
         type="button"
-        onClick={() => setOpen(v => !v)}
-        className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap ${
-          value !== 'todos'
-            ? 'border-escala-accent bg-orange-50 text-escala-accent'
-            : 'border-gray-200 text-gray-600 bg-white hover:border-escala-accent hover:bg-orange-50'
-        }`}
+        onClick={() => setOpen(!open)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-gray-50 transition-colors rounded-xl"
       >
-        <span>{activeLabel}</span>
-        <svg className={`w-3.5 h-3.5 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+        <span className="text-gray-400 flex-shrink-0">{icon}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
+          <p className="text-sm font-semibold text-escala-dark truncate">{value || allLabel}</p>
+        </div>
+        <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-1.5 min-w-[160px] bg-white rounded-2xl shadow-xl border border-gray-100 py-1.5 z-50">
+        <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200]">
+          <button type="button" onMouseDown={() => { onChange(''); setOpen(false); }}
+            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${!value ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
+            {allLabel}
+          </button>
           {options.map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              onMouseDown={() => { onChange(opt.value); setOpen(false); }}
-              onTouchEnd={(e) => { e.preventDefault(); onChange(opt.value); setOpen(false); }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-orange-50 ${
-                value === opt.value ? 'text-escala-accent font-semibold' : 'text-gray-600'
-              }`}
-            >
-              {opt.label}
+            <button key={opt} type="button" onMouseDown={() => { onChange(opt); setOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${value === opt ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
+              {opt}
             </button>
           ))}
         </div>
@@ -141,92 +128,83 @@ const PropertiesPage = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="sticky top-16 z-30 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+      {/* Filters — mismo diseño que SmartSearch */}
+      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col items-center">
 
-          {/* Search input — full width always */}
-          <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2.5 mb-3">
-            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Buscar por ubicación, tipo o código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 bg-transparent text-escala-dark placeholder-gray-400 outline-none text-sm font-medium"
+          {/* Tabs Arriendo / Venta — sliding pill */}
+          <div className="relative flex bg-white rounded-full p-1 shadow-md border border-gray-100 mb-4">
+            <span
+              aria-hidden="true"
+              className="absolute inset-y-1 rounded-full"
+              style={{
+                width: 'calc(50% - 4px)',
+                left: '4px',
+                background: 'linear-gradient(135deg, #FF6B00, #e66000)',
+                boxShadow: '0 4px 14px rgba(255,107,0,0.35)',
+                transform: filterOperacion === 'venta' ? 'translateX(100%)' : 'translateX(0)',
+                transition: 'transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1)',
+              }}
             />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="text-gray-400 hover:text-gray-600">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-
-          {/* Filters row — wrap en móvil */}
-          <div className="flex flex-wrap items-center gap-2">
-            <FilterSelect
-              label="Tipo"
-              value={filterTipo}
-              onChange={setFilterTipo}
-              options={[
-                { value: 'todos', label: 'Tipo' },
-                { value: 'apartamento', label: 'Apartamento' },
-                { value: 'apartaestudio', label: 'Apartaestudio' },
-                { value: 'casa', label: 'Casa' },
-                { value: 'oficina', label: 'Oficina' },
-              ]}
-            />
-            <FilterSelect
-              label="Operación"
-              value={filterOperacion}
-              onChange={setFilterOperacion}
-              options={[
-                { value: 'todos', label: 'Operación' },
-                { value: 'arriendo', label: 'Arriendo' },
-                { value: 'venta', label: 'Venta' },
-              ]}
-            />
-            <FilterSelect
-              label="Ubicación"
-              value={filterUbicacion}
-              onChange={setFilterUbicacion}
-              options={[
-                { value: 'todos', label: 'Ubicación' },
-                ...ubicaciones.map(u => ({ value: u, label: u })),
-              ]}
-            />
-            <FilterSelect
-              label="Habs"
-              value={filterHabitaciones}
-              onChange={setFilterHabitaciones}
-              options={[
-                { value: 'todos', label: 'Habs' },
-                { value: '1', label: '1 hab' },
-                { value: '2', label: '2 habs' },
-                { value: '3+', label: '3+ habs' },
-              ]}
-            />
-
-            {/* Limpiar filtros — solo si hay alguno activo */}
-            {(filterTipo !== 'todos' || filterOperacion !== 'todos' || filterUbicacion !== 'todos' || filterHabitaciones !== 'todos') && (
+            {[{ key: 'arriendo', label: 'Arriendo' }, { key: 'venta', label: 'Venta' }].map(op => (
               <button
-                onClick={() => { setFilterTipo('todos'); setFilterOperacion('todos'); setFilterUbicacion('todos'); setFilterHabitaciones('todos'); }}
-                className="flex items-center gap-1 px-3 py-2 rounded-full text-xs font-medium text-gray-500 border border-gray-200 hover:border-red-300 hover:text-red-500 transition-all whitespace-nowrap flex-shrink-0"
+                key={op.key}
+                type="button"
+                onClick={() => setFilterOperacion(op.key)}
+                className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold"
+                style={{
+                  color: filterOperacion === op.key ? '#fff' : '#6b7280',
+                  transition: 'color 0.25s ease',
+                }}
               >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Limpiar
+                {op.label}
               </button>
-            )}
+            ))}
           </div>
 
-          {/* Results count */}
-          <p className="text-xs text-gray-400 mt-2 font-medium">
+          {/* Card de filtros */}
+          <div className="w-full bg-white rounded-3xl p-2 shadow-2xl border border-gray-100">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1">
+              <SelectField
+                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
+                label="Tipo de inmueble"
+                value={filterTipo === 'todos' ? '' : filterTipo}
+                onChange={(v) => setFilterTipo(v || 'todos')}
+                options={['Apartamento', 'Apartaestudio', 'Casa', 'Casa Campestre', 'Oficina']}
+                allLabel="Todos los tipos"
+              />
+              <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
+              <SelectField
+                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
+                label="Ciudad / Municipio"
+                value={filterUbicacion === 'todos' ? '' : filterUbicacion}
+                onChange={(v) => setFilterUbicacion(v || 'todos')}
+                options={ubicaciones}
+                allLabel="Todas las ciudades"
+              />
+              <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
+              <SelectField
+                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>}
+                label="Habitaciones"
+                value={filterHabitaciones === 'todos' ? '' : filterHabitaciones}
+                onChange={(v) => setFilterHabitaciones(v || 'todos')}
+                options={['1', '2', '3+']}
+                allLabel="Cualquier cantidad"
+              />
+              {/* Botón limpiar — solo si hay filtros activos */}
+              {(filterTipo !== 'todos' || filterUbicacion !== 'todos' || filterHabitaciones !== 'todos') && (
+                <button
+                  onClick={() => { setFilterTipo('todos'); setFilterUbicacion('todos'); setFilterHabitaciones('todos'); }}
+                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-4 rounded-2xl text-sm font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                  Limpiar
+                </button>
+              )}
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-400 mt-3 self-start font-medium">
             {filteredProperties.length} {filteredProperties.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}
           </p>
         </div>
