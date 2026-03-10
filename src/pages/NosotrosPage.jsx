@@ -300,8 +300,8 @@ const NosotrosPage = () => {
                             ></div>
                             <div className="relative z-10">
                                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold text-white mb-4 tracking-tight">
-                                    Confía tu patrimonio en{' '}
-                                    <span className="text-escala-accent">buenas manos</span>
+                                    Encuentra el{' '}
+                                    <span className="text-escala-accent">hogar perfecto</span> o optimiza tu inversión
                                 </h2>
                                 <p className="text-gray-300 font-medium max-w-xl mx-auto mb-8">
                                     Agenda una asesoría gratuita y descubre cómo podemos ayudarte a hacer crecer tu inversión inmobiliaria en Medellín y Sabaneta.
