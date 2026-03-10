@@ -1,5 +1,13 @@
-import React, { useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useRef, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+
+function ScrollToTop() {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+    return null;
+}
 import { HelmetProvider } from 'react-helmet-async';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -68,6 +76,7 @@ function App() {
         <HelmetProvider>
         <Router>
             <GlobalLayout>
+                <ScrollToTop />
                 <Navbar />
                 <Routes>
                     <Route path="/" element={<HomePage />} />
