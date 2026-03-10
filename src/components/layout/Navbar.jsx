@@ -314,8 +314,8 @@ const Navbar = () => {
             </nav>
 
             {/* Mobile Menu Overlay */}
-            <div 
-                className={`fixed inset-0 z-40 lg:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}
+            <div
+                className={`fixed inset-0 z-40 lg:hidden pointer-events-auto ${mobileMenuOpen ? 'block' : 'hidden'}`}
             >
                 {/* Backdrop */}
                 <div 
