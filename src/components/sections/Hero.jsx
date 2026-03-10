@@ -169,7 +169,7 @@ const Hero = () => {
                                 </svg>
                             </div>
                             <span className="text-3xl sm:text-4xl font-heading font-black text-white">24/7</span>
-                            <p className="text-xs sm:text-sm font-bold text-escala-accent uppercase tracking-wider mt-1">Asesoría VIP</p>
+                            <p className="text-xs sm:text-sm font-bold text-escala-accent uppercase tracking-wider mt-1">Asesoría Personalizada</p>
                         </MetricCard>
 
                         {/* Card 3 - Seguridad */}
