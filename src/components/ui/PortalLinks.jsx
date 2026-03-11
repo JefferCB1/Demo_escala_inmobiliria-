@@ -46,7 +46,7 @@ const PortalLinks = () => {
   const toggle = (id) => setOpen(open === id ? null : id);
 
   return (
-    <section className="w-full pt-4 pb-16 relative z-10 overflow-hidden">
+    <section className="w-full pt-4 pb-16 relative z-10">
       {/* Background similar to Hero */}
       <div className="absolute inset-0 z-0 bg-slate-100">
         <video
