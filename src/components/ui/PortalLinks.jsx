@@ -86,7 +86,7 @@ const PortalLinks = () => {
 
               {/* Dropdown sede selector */}
               {open === portal.id && (
-                <div className="absolute top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 w-48">
+                <div className="absolute bottom-full mb-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 w-48">
                   {portal.sedes.map((sede) => (
                     <a
                       key={sede.label}
