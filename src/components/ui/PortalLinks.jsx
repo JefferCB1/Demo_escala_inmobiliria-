@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { KeyRound, Users } from 'lucide-react';
 
 const portals = [
@@ -45,6 +45,13 @@ const PortalLinks = () => {
 
   const toggle = (id) => setOpen(open === id ? null : id);
 
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [open]);
+
   return (
     <section className="w-full pt-4 pb-16 relative z-10">
       {/* Background similar to Hero */}
@@ -68,7 +75,7 @@ const PortalLinks = () => {
             <div key={portal.id} className="relative flex flex-col items-center">
               <div
                 className="flex flex-col items-center justify-center p-6 group cursor-pointer"
-                onClick={() => toggle(portal.id)}
+                onClick={(e) => { e.stopPropagation(); toggle(portal.id); }}
               >
                 <div className="relative mb-4 w-24 h-24 flex items-center justify-center rounded-full border-2 border-gray-200 bg-white transition-all duration-300 group-hover:border-escala-accent group-hover:shadow-[0_0_20px_rgba(255,102,0,0.3)] group-hover:-translate-y-2">
                   <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-escala-accent/30 scale-90 group-hover:scale-110 transition-transform duration-500"></div>
