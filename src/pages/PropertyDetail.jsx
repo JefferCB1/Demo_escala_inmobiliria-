@@ -4,85 +4,46 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { formatPrice } from '../utils/formatters';
-
-const mockProperty = {
-  id: '1272-733',
-  titulo: 'Apartamento En Arriendo - Vereda San Jose, Sabaneta',
-  tipo: 'Apartamento',
-  operacion: 'Arriendo',
-  precio: 1800000,
-  ubicacion: 'Vereda San Jose, Sabaneta',
-  departamento: 'Antioquia',
-  codigo: '1272-733',
-  area: 60,
-  areaLote: 60,
-  alcobas: 3,
-  banos: 2,
-  parqueadero: 1,
-  estrato: 2,
-  edad: '2 años',
-  descripcion: 'HERMOSO APARTAMENTO PARA ESTRENAR EN LOMA SAN JOSE sala-comedor, 3 alcobas, 2 closet, 2 baños, cocina integral, balcon, zona de ropas, red de gas, calentador, parqueadero privado y cuarto util. Transporte integrado del metro pasa en frente de la unidad. Zonas comunes en construccion. Mas informacion con el asesor: YONATAN ARISTIZABAL YEPES 3045335855',
-  caracteristicas: [
-    'Cocina Americana',
-    'Closet',
-    'Barra Americana',
-    'Salon Comunal',
-    'Gas Natural',
-    'Baño Social',
-    'Cocina Abierta',
-    'Gimnasio',
-    'Vigilancia 24 Horas',
-    'Calentador A Gas',
-    'Baño Privado',
-    'Cancha De Futbol'
-  ],
-  imagenes: [
-    'https://lh3.googleusercontent.com/f2bHRFnEREwBtjR7WQ9P1k8qGVKxM67HlKdOLNf2QXeCmhAF_Hf34b-0poKJIansVYvGKBM-sU-IbZtwmDnnOaDBIdsDl_lVY5oT_yNXtjSvtw=s1200',
-    'https://lh3.googleusercontent.com/moAWYHQGvecjrUfWEyBpQ46L4uzdi0cGUXqbshATEV9vhalN1u61AgJ7nDGeq4nXwjU439IwA90FFyodhL2ShNGyFykzyEW_h6M_i2iR1EKARQ=s1200',
-    'https://lh3.googleusercontent.com/ZuH7tBAnYkLitQg1NPCzjGn4YxUhn89JZXZFdC9PI1s2vkykDxM3_a-TwTAIg3_hCxLSgF11G_bq61UVFXu1yBXNfPSMw7SE7l6umJKxgi2t=s1200',
-    'https://lh3.googleusercontent.com/IVI4TvRUee1fXcBnoFfWPRCD0ItkUfz0LmV90H8iVDQP5v3GuBX-4IGWxF2m8E0YLhaQqxZujWr9L54toHwQGvwUNnDrkJ3Dpl3p-yhhEBhl=s1200',
-    'https://lh3.googleusercontent.com/e-wmrFhbReSF_ZRQf0KSxXxsz_8o-5zm4AzoCMTfh6KDM11TtYvIRi344cJHQvVkfnF65N-KZ18qY31IYGMS6rHiWh0rtyNw3HJm7mzrgntP=s1200',
-    'https://lh3.googleusercontent.com/-GnD5eiMJRG_Lor2hakv2aP27SL2fdFdML9lQj-uvKoVkA-wXSKuJ4EdOG86-L7dzwco2WrFdeb5I41zQDR_Pu0smFqIj5B7gMuH8gG7uFA=s1200',
-    'https://lh3.googleusercontent.com/KVdACYcPwKRf23E8d7-gEet_tlBNcL5iTeSKlUzshHqReUzgOqcPXHbVutiOg4JMYdkAufN-mx9MoMrjBW3-5ZHQba-3NKQzg1OmtqTQXoRX=s1200',
-    'https://lh3.googleusercontent.com/WemdHnb-ZFUB5NO-u7fAsb4VEG7VHTpw85gF587ExZqgf4c1In0qHF_DS1j7RwSn1K_1O0EwOV5ZTA-vB9epPWMllXQ6Yq9ZlRsG4BnZw2g=s1200'
-  ],
-  agente: {
-    nombre: 'Yonatan De Jesus Aristizabal Yepes',
-    telefono: '3045335855',
-    email: 'asesorescalainmobiliaria12@gmail.com'
-  },
-  coordenadas: {
-    lat: 6.13596,
-    lng: -75.6186
-  }
-};
+import { getPropiedad } from '../services/simiApi';
 
 const PropertyDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [imagenActual, setImagenActual] = useState(0);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
+  const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const property = mockProperty;
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    getPropiedad(id)
+      .then(setProperty)
+      .catch(() => setError('No se pudo cargar la propiedad.'))
+      .finally(() => setLoading(false));
+  }, [id]);
 
   // Auto carousel
   useEffect(() => {
+    if (!property?.imagenes?.length) return;
     const interval = setInterval(() => {
       setImagenActual((prev) => (prev + 1) % property.imagenes.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [property.imagenes.length]);
+  }, [property?.imagenes?.length]);
 
+  const titulo = titulo || `${property.tipo} en ${property.operacion} - ${property.ubicacion}`;
   const displayedFeatures = showAllFeatures ? property.caracteristicas : property.caracteristicas.slice(0, 8);
 
   const schemaData = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
-    name: property.titulo,
+    name: titulo,
     description: property.descripcion,
     url: `https://escalainmobiliaria.com.co/propiedad/${property.id}`,
-    image: property.imagenes[0],
-    numberOfRooms: property.alcobas,
+    image: property.imagenes?.[0],
+    numberOfRooms: property.habitaciones,
     floorSize: { '@type': 'QuantitativeValue', value: property.area, unitCode: 'MTK' },
     address: {
       '@type': 'PostalAddress',
@@ -98,15 +59,42 @@ const PropertyDetail = () => {
     },
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Navbar />
+        <div className="text-center pt-24">
+          <div className="w-12 h-12 border-4 border-escala-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 font-medium">Cargando propiedad...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !property) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        <Navbar />
+        <div className="text-center pt-24">
+          <p className="text-red-500 font-medium mb-4">{error || 'Propiedad no encontrada'}</p>
+          <button onClick={() => navigate('/propiedades')} className="px-6 py-2 bg-escala-accent text-white rounded-xl font-bold hover:bg-orange-600 transition-colors">
+            Ver propiedades
+          </button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Helmet>
-        <title>{property.titulo} | Escala Inmobiliaria</title>
-        <meta name="description" content={`${property.tipo} en ${property.operacion.toLowerCase()} en ${property.ubicacion}. ${property.alcobas} alcobas, ${property.banos} baños, ${property.area}m². Código ${property.codigo}. Contáctanos por WhatsApp.`} />
+        <title>{titulo} | Escala Inmobiliaria</title>
+        <meta name="description" content={`${property.tipo} en ${property.operacion.toLowerCase()} en ${property.ubicacion}. ${property.habitaciones} alcobas, ${property.banos} baños, ${property.area}m². Código ${property.codigo}. Contáctanos por WhatsApp.`} />
         <link rel="canonical" href={`https://escalainmobiliaria.com.co/propiedad/${property.id}`} />
-        <meta property="og:title" content={property.titulo} />
-        <meta property="og:description" content={`${property.tipo} en ${property.ubicacion} - ${property.area}m² · ${property.alcobas} alcobas · Código ${property.codigo}`} />
-        <meta property="og:image" content={property.imagenes[0]} />
+        <meta property="og:title" content={titulo} />
+        <meta property="og:description" content={`${property.tipo} en ${property.ubicacion} - ${property.area}m² · ${property.habitaciones} alcobas · Código ${property.codigo}`} />
+        <meta property="og:image" content={property.imagenes?.[0]} />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
       <Navbar />
@@ -132,7 +120,7 @@ const PropertyDetail = () => {
               <img 
                 key={index}
                 src={img} 
-                alt={`${property.titulo} - Imagen ${index + 1}`}
+                alt={`${titulo} - Imagen ${index + 1}`}
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
                   imagenActual === index ? 'opacity-100' : 'opacity-0'
                 }`}
@@ -194,7 +182,7 @@ const PropertyDetail = () => {
                 <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                   <div>
                     <h1 className="text-2xl md:text-3xl font-heading font-bold text-escala-dark mb-2">
-                      {property.titulo}
+                      {titulo}
                     </h1>
                     <p className="text-gray-500 flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,7 +207,7 @@ const PropertyDetail = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
                     </div>
-                    <p className="text-xl font-bold text-escala-dark">{property.alcobas}</p>
+                    <p className="text-xl font-bold text-escala-dark">{property.habitaciones}</p>
                     <p className="text-xs text-gray-400 font-medium uppercase">Alcobas</p>
                   </div>
                   <div className="text-center p-3 bg-slate-50 rounded-xl">
@@ -337,7 +325,7 @@ const PropertyDetail = () => {
 
                 <div className="space-y-3">
                   <a 
-                    href={`https://wa.me/+57${property.agente.telefono}?text=Buen dia, estoy interesado en el inmueble ${property.titulo} código: ${property.codigo}`}
+                    href={`https://wa.me/+57${property.agente.telefono}?text=Buen dia, estoy interesado en el inmueble ${titulo} código: ${property.codigo}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#20BD5A] text-white py-3 px-4 rounded-xl font-bold transition-colors shadow-lg"
