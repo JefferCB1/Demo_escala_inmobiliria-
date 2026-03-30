@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { propiedades } from '../data/properties';
+import { getPropiedades } from '../services/simiApi';
 import { formatPrice } from '../utils/formatters';
 
 const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
@@ -48,7 +48,9 @@ const PropertiesPage = () => {
   const [filterOperacion, setFilterOperacion] = useState('todos');
   const [filterUbicacion, setFilterUbicacion] = useState('todos');
   const [filterHabitaciones, setFilterHabitaciones] = useState('todos');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [propiedades, setPropiedades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Apply URL params from SmartSearch
   useEffect(() => {
@@ -62,20 +64,28 @@ const PropertiesPage = () => {
     if (habitaciones) setFilterHabitaciones(habitaciones);
   }, [searchParams]);
 
-  const filteredProperties = propiedades.filter(prop => {
-    const matchesTipo = filterTipo === 'todos' || prop.tipo.toLowerCase().includes(filterTipo.toLowerCase());
-    const matchesOperacion = filterOperacion === 'todos' || prop.operacion.toLowerCase() === filterOperacion.toLowerCase();
-    const matchesUbicacion = filterUbicacion === 'todos' || prop.ubicacion.toLowerCase().includes(filterUbicacion.toLowerCase());
-    const matchesHabitaciones = filterHabitaciones === 'todos' ||
-      (filterHabitaciones === '3+' ? prop.habitaciones >= 3 : prop.habitaciones === parseInt(filterHabitaciones));
-    const matchesSearch = searchTerm === '' ||
-      prop.ubicacion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prop.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      prop.id.includes(searchTerm);
-    return matchesTipo && matchesOperacion && matchesUbicacion && matchesHabitaciones && matchesSearch;
-  });
+  const cargarPropiedades = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { propiedades: data } = await getPropiedades({
+        operacion: filterOperacion !== 'todos' ? filterOperacion : undefined,
+        tipo: filterTipo !== 'todos' ? filterTipo : undefined,
+        ciudad: filterUbicacion !== 'todos' ? filterUbicacion : undefined,
+        habitaciones: filterHabitaciones !== 'todos' ? filterHabitaciones : undefined,
+        limite: '50',
+      });
+      setPropiedades(data);
+    } catch {
+      setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  }, [filterOperacion, filterTipo, filterUbicacion, filterHabitaciones]);
 
-  const ubicaciones = [...new Set(propiedades.map(p => p.ubicacion.split(', ')[1] || p.ubicacion.split(', ')[0]))];
+  useEffect(() => {
+    cargarPropiedades();
+  }, [cargarPropiedades]);
 
   const schemaData = {
     '@context': 'https://schema.org',
@@ -179,7 +189,7 @@ const PropertiesPage = () => {
                 label="Ciudad / Municipio"
                 value={filterUbicacion === 'todos' ? '' : filterUbicacion}
                 onChange={(v) => setFilterUbicacion(v || 'todos')}
-                options={ubicaciones}
+                options={['Medellín', 'Sabaneta', 'Itaguí', 'Envigado', 'La Estrella', 'Caldas']}
                 allLabel="Todas las ciudades"
               />
               <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
@@ -205,16 +215,36 @@ const PropertiesPage = () => {
           </div>
 
           <p className="text-xs text-gray-400 mt-3 self-start font-medium">
-            {filteredProperties.length} {filteredProperties.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}
+            {loading ? 'Buscando propiedades...' : `${propiedades.length} ${propiedades.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
           </p>
         </div>
       </div>
 
       {/* Properties Grid */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {filteredProperties.length > 0 ? (
+        {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProperties.map((propiedad) => (
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 animate-pulse">
+                <div className="h-48 bg-gray-200" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  <div className="h-10 bg-gray-200 rounded-xl" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-16">
+            <p className="text-red-500 font-medium mb-4">{error}</p>
+            <button onClick={cargarPropiedades} className="px-6 py-2 bg-escala-accent text-white rounded-xl font-bold hover:bg-orange-600 transition-colors">
+              Reintentar
+            </button>
+          </div>
+        ) : propiedades.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {propiedades.map((propiedad) => (
               <div 
                 key={propiedad.id} 
                 onClick={() => navigate(`/propiedad/${propiedad.id}`)}
@@ -310,7 +340,8 @@ const PropertiesPage = () => {
             <h3 className="text-xl font-heading font-bold text-gray-700 mb-2">No se encontraron propiedades</h3>
             <p className="text-gray-500">Intenta con otros filtros de búsqueda</p>
           </div>
-        )}
+        )
+        }
       </div>
     </div>
   );
