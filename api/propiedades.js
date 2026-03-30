@@ -1,11 +1,34 @@
-const BASE_URL = 'https://simi-api.com';
+const BASE_URL = 'http://simi-api.com';
 
 function getAuthHeader(token) {
   return 'Basic ' + Buffer.from(`Authorization:${token}`).toString('base64');
 }
 
-async function fetchSimi(token, params) {
-  const url = `${BASE_URL}/ApiSimiweb/response/v2.1.1/filtroInmueble/?${params}`;
+async function fetchSimi(token, { limite, cantidad, tipo, operacion, ciudad, alcobas }) {
+  const offset = limite;
+  const path = [
+    'limite', offset,
+    'total', cantidad,
+    'departamento', 0,
+    'ciudad', ciudad || 0,
+    'zona', 0,
+    'barrio', 0,
+    'tipoInm', tipo || 0,
+    'tipOper', operacion || 0,
+    'areamin', 0,
+    'areamax', 0,
+    'valmin', 0,
+    'valmax', 0,
+    'campo', 0,
+    'order', 0,
+    'banios', 0,
+    'alcobas', alcobas || 0,
+    'garajes', 0,
+    'sede', 0,
+    'usuario', 0,
+  ].join('/');
+
+  const url = `${BASE_URL}/ApiSimiweb/response/v2.1.1/filtroInmueble/${path}`;
   const res = await fetch(url, {
     headers: { Authorization: getAuthHeader(token) },
   });
@@ -24,14 +47,10 @@ export default async function handler(req, res) {
     sede,
   } = req.query;
 
-  const params = new URLSearchParams();
-  params.set('limite', String(parseInt(pagina) * parseInt(limite)));
-  params.set('cantidad', limite);
-  if (tipo) params.set('tipoInm', tipo);
-  if (operacion) params.set('tipOper', operacion);
-  if (ciudad) params.set('ciudad', ciudad);
-  if (habitaciones && habitaciones !== '3+') params.set('alcobas', habitaciones);
-  if (habitaciones === '3+') params.set('alcobas', '3');
+  const alcobas = habitaciones === '3+' ? '3' : (habitaciones || null);
+  const offset = parseInt(pagina) * parseInt(limite);
+
+  const params = { limite: offset, cantidad: parseInt(limite), tipo, operacion, ciudad, alcobas };
 
   const tokenMedellin = process.env.SIMI_TOKEN_MEDELLIN;
   const tokenSabaneta = process.env.SIMI_TOKEN_SABANETA;
@@ -42,7 +61,7 @@ export default async function handler(req, res) {
 
   try {
     const results = await Promise.all(tokens.map(token => fetchSimi(token, params)));
-    const propiedades = results.flatMap(r => (Array.isArray(r) ? r : r.response || []));
+    const propiedades = results.flatMap(r => r.data || []);
 
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.status(200).json({ propiedades, total: propiedades.length });
