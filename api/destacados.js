@@ -9,8 +9,9 @@ async function fetchDestacados(token) {
   const res = await fetch(url, {
     headers: { Authorization: getAuthHeader(token) },
   });
-  if (!res.ok) throw new Error(`SIMI error: ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  if (data.status === 401 || data.status === 403) return [];
+  return data.Inmuebles || data.data || data.response || [];
 }
 
 export default async function handler(req, res) {
@@ -18,13 +19,10 @@ export default async function handler(req, res) {
   const tokenSabaneta = process.env.SIMI_TOKEN_SABANETA;
 
   try {
-    const [resMedellin, resSabaneta] = await Promise.all([
+    const [medellin, sabaneta] = await Promise.all([
       fetchDestacados(tokenMedellin),
       fetchDestacados(tokenSabaneta),
     ]);
-
-    const medellin = resMedellin.data || resMedellin.response || [];
-    const sabaneta = resSabaneta.data || resSabaneta.response || [];
     const destacados = [...medellin, ...sabaneta];
 
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
