@@ -1,4 +1,4 @@
-const BASE_URL = 'https://simi-api.com';
+const BASE_URL = 'http://simi-api.com';
 
 function getAuthHeader(token) {
   return 'Basic ' + Buffer.from(`Authorization:${token}`).toString('base64');
@@ -23,8 +23,8 @@ export default async function handler(req, res) {
       fetchDestacados(tokenSabaneta),
     ]);
 
-    const medellin = Array.isArray(resMedellin) ? resMedellin : resMedellin.response || [];
-    const sabaneta = Array.isArray(resSabaneta) ? resSabaneta : resSabaneta.response || [];
+    const medellin = resMedellin.data || resMedellin.response || [];
+    const sabaneta = resSabaneta.data || resSabaneta.response || [];
     const destacados = [...medellin, ...sabaneta];
 
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
