@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getPropiedades } from '../services/simiApi';
@@ -68,24 +68,44 @@ const PropertiesPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const { propiedades: data } = await getPropiedades({
-        operacion: filterOperacion !== 'todos' ? filterOperacion : undefined,
-        tipo: filterTipo !== 'todos' ? filterTipo : undefined,
-        ciudad: filterUbicacion !== 'todos' ? filterUbicacion : undefined,
-        habitaciones: filterHabitaciones !== 'todos' ? filterHabitaciones : undefined,
-        limite: '50',
-      });
+      const { propiedades: data } = await getPropiedades({ limite: '50' });
       setPropiedades(data);
     } catch {
       setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
-  }, [filterOperacion, filterTipo, filterUbicacion, filterHabitaciones]);
+  }, []);
 
   useEffect(() => {
     cargarPropiedades();
   }, [cargarPropiedades]);
+
+  // Filtrado client-side (SIMI usa IDs numéricos, filtramos sobre los datos mapeados)
+  const propiedadesFiltradas = useMemo(() => {
+    return propiedades.filter(p => {
+      if (filterOperacion !== 'todos') {
+        const op = (p.operacion || '').toLowerCase();
+        if (!op.includes(filterOperacion.toLowerCase())) return false;
+      }
+      if (filterTipo !== 'todos') {
+        if ((p.tipo || '').toLowerCase() !== filterTipo.toLowerCase()) return false;
+      }
+      if (filterUbicacion !== 'todos') {
+        const ciudad = (p.ciudad || p.ubicacion || '').toLowerCase();
+        if (!ciudad.includes(filterUbicacion.toLowerCase())) return false;
+      }
+      if (filterHabitaciones !== 'todos') {
+        const habs = parseInt(p.habitaciones || 0);
+        if (filterHabitaciones === '3+') {
+          if (habs < 3) return false;
+        } else {
+          if (habs !== parseInt(filterHabitaciones)) return false;
+        }
+      }
+      return true;
+    });
+  }, [propiedades, filterOperacion, filterTipo, filterUbicacion, filterHabitaciones]);
 
   const schemaData = {
     '@context': 'https://schema.org',
@@ -215,7 +235,7 @@ const PropertiesPage = () => {
           </div>
 
           <p className="text-xs text-gray-400 mt-3 self-start font-medium">
-            {loading ? 'Buscando propiedades...' : `${propiedades.length} ${propiedades.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
+            {loading ? 'Buscando propiedades...' : `${propiedadesFiltradas.length} ${propiedadesFiltradas.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
           </p>
         </div>
       </div>
@@ -242,9 +262,9 @@ const PropertiesPage = () => {
               Reintentar
             </button>
           </div>
-        ) : propiedades.length > 0 ? (
+        ) : propiedadesFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {propiedades.map((propiedad) => (
+            {propiedadesFiltradas.map((propiedad) => (
               <div 
                 key={propiedad.id} 
                 onClick={() => navigate(`/propiedad/${propiedad.id}`)}
