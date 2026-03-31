@@ -1,37 +1,38 @@
-// Campos reales confirmados de SIMI:
+// Campos reales confirmados de SIMI API:
 // Codigo_Inmueble, Tipo_Inmueble, Canon, Venta, Alcobas, banios, garaje,
-// Estrato, Barrio, Ciudad, descripcionlarga, Inmuebles, datosGrales
+// Estrato, Barrio, Ciudad, Departamento, descripcionlarga, AreaConstruida,
+// foto1 (URL directa), latitud, longitud (minúsculas), Gestion, IdInmobiliaria
 function mapPropiedad(item) {
-  const fotos = item.Fotos || item.fotos || item.imagenes || [];
-  const precioRaw = item.Canon || item.Venta || item.ValorVenta || item.precio || '0';
+  const precioRaw = item.Canon || item.Venta || item.ValorVenta || '0';
   const precio = parseFloat(String(precioRaw).replace(/[^0-9.]/g, '')) || 0;
 
+  // foto1 es la imagen principal; puede haber foto2, foto3...
+  const imagenes = [item.foto1, item.foto2, item.foto3, item.foto4, item.foto5]
+    .filter(Boolean);
+
   return {
-    id: item.Codigo_Inmueble || item.codigo_inmueble || item.id,
-    tipo: item.Tipo_Inmueble || item.tipo_inmueble || item.tipo || '',
-    operacion: item.Gestion || item.gestion || (item.Canon && item.Canon !== '0' ? 'Arriendo' : 'Venta'),
+    id: item.Codigo_Inmueble,
+    tipo: item.Tipo_Inmueble || '',
+    operacion: item.Gestion || (precio > 0 ? 'Arriendo' : 'Venta'),
     precio,
-    ubicacion: [item.Barrio || item.barrio, item.Ciudad || item.ciudad].filter(Boolean).join(', ') || '',
-    area: parseFloat(item.AreaConstruida || item.areaConstruida || item.area || 0),
-    habitaciones: parseInt(item.Alcobas || item.alcobas || 0),
-    banos: parseInt(item.banios || item.Banios || item.banos || 0),
-    parqueadero: parseInt(item.garaje || item.Garajes || item.garajes || 0),
-    imagen: fotos[0]?.url || fotos[0] || item.imagen || '',
-    imagenes: fotos.map(f => f?.url || f).filter(Boolean),
-    descripcion: item.descripcionlarga || item.Descripcion || item.descripcion || '',
-    estrato: item.Estrato || item.estrato,
-    departamento: item.Departamento || item.departamento || 'Antioquia',
-    codigo: item.Codigo_Inmueble || item.codigo_inmueble || item.id,
-    caracteristicas: item.Caracteristicas || item.caracteristicas || [],
-    agente: item.Asesor || item.asesor
-      ? {
-          nombre: (item.Asesor || item.asesor)?.Nombre || (item.Asesor || item.asesor)?.nombre || '',
-          telefono: (item.Asesor || item.asesor)?.Celular || (item.Asesor || item.asesor)?.celular || (item.Asesor || item.asesor)?.telefono || '',
-          email: (item.Asesor || item.asesor)?.Email || (item.Asesor || item.asesor)?.email || '',
-        }
-      : null,
-    coordenadas: item.Latitud && item.Longitud
-      ? { lat: parseFloat(item.Latitud), lng: parseFloat(item.Longitud) }
+    ubicacion: [item.Barrio, item.Ciudad].filter(Boolean).join(', '),
+    area: parseFloat(item.AreaConstruida || item.AreaLote || 0),
+    habitaciones: parseInt(item.Alcobas || 0),
+    banos: parseInt(item.banios || 0),
+    parqueadero: parseInt(item.garaje || 0),
+    imagen: imagenes[0] || '',
+    imagenes,
+    descripcion: item.descripcionlarga || '',
+    estrato: item.Estrato || '',
+    departamento: item.Departamento || 'Antioquia',
+    ciudad: item.Ciudad || '',
+    barrio: item.Barrio || '',
+    zona: item.Zona || '',
+    codigo: item.Codigo_Inmueble,
+    administracion: parseFloat(String(item.Administracion || '0').replace(/[^0-9.]/g, '')),
+    logo: item.logo || '',
+    coordenadas: item.latitud && item.longitud
+      ? { lat: parseFloat(item.latitud), lng: parseFloat(item.longitud) }
       : null,
   };
 }
