@@ -1,34 +1,32 @@
-// Mapea un inmueble de SIMI al formato interno de la app
-// Campos reales de SIMI: Codigo_Inmueble, Tipo_Inmueble, Gestion, Canon,
-// AreaConstruida, Alcobas, Banios, Garajes, Barrio, Ciudad
+// Campos reales confirmados de SIMI:
+// Codigo_Inmueble, Tipo_Inmueble, Canon, Venta, Alcobas, banios, garaje,
+// Estrato, Barrio, Ciudad, descripcionlarga, Inmuebles, datosGrales
 function mapPropiedad(item) {
   const fotos = item.Fotos || item.fotos || item.imagenes || [];
-  const precio = parseFloat(
-    String(item.Canon || item.ValorVenta || item.valor_venta || item.precio || 0)
-      .replace(/[^0-9.]/g, '')
-  );
+  const precioRaw = item.Canon || item.Venta || item.ValorVenta || item.precio || '0';
+  const precio = parseFloat(String(precioRaw).replace(/[^0-9.]/g, '')) || 0;
 
   return {
-    id: item.Codigo_Inmueble || item.codigo_inmueble || item.codigo || item.id,
+    id: item.Codigo_Inmueble || item.codigo_inmueble || item.id,
     tipo: item.Tipo_Inmueble || item.tipo_inmueble || item.tipo || '',
-    operacion: item.Gestion || item.gestion || item.tipo_operacion || item.operacion || '',
+    operacion: item.Gestion || item.gestion || (item.Canon && item.Canon !== '0' ? 'Arriendo' : 'Venta'),
     precio,
-    ubicacion: [item.Barrio || item.barrio, item.Ciudad || item.ciudad].filter(Boolean).join(', ') || item.ubicacion || '',
-    area: parseFloat(item.AreaConstruida || item.area_construida || item.area || 0),
-    habitaciones: parseInt(item.Alcobas || item.alcobas || item.habitaciones || 0),
-    banos: parseInt(item.Banios || item.banos || 0),
-    parqueadero: parseInt(item.Garajes || item.garajes || item.parqueadero || 0),
+    ubicacion: [item.Barrio || item.barrio, item.Ciudad || item.ciudad].filter(Boolean).join(', ') || '',
+    area: parseFloat(item.AreaConstruida || item.areaConstruida || item.area || 0),
+    habitaciones: parseInt(item.Alcobas || item.alcobas || 0),
+    banos: parseInt(item.banios || item.Banios || item.banos || 0),
+    parqueadero: parseInt(item.garaje || item.Garajes || item.garajes || 0),
     imagen: fotos[0]?.url || fotos[0] || item.imagen || '',
     imagenes: fotos.map(f => f?.url || f).filter(Boolean),
-    descripcion: item.Descripcion || item.descripcion || '',
+    descripcion: item.descripcionlarga || item.Descripcion || item.descripcion || '',
     estrato: item.Estrato || item.estrato,
     departamento: item.Departamento || item.departamento || 'Antioquia',
-    codigo: item.Codigo_Inmueble || item.codigo_inmueble || item.codigo || item.id,
+    codigo: item.Codigo_Inmueble || item.codigo_inmueble || item.id,
     caracteristicas: item.Caracteristicas || item.caracteristicas || [],
     agente: item.Asesor || item.asesor
       ? {
           nombre: (item.Asesor || item.asesor)?.Nombre || (item.Asesor || item.asesor)?.nombre || '',
-          telefono: (item.Asesor || item.asesor)?.Celular || (item.Asesor || item.asesor)?.telefono || '',
+          telefono: (item.Asesor || item.asesor)?.Celular || (item.Asesor || item.asesor)?.celular || (item.Asesor || item.asesor)?.telefono || '',
           email: (item.Asesor || item.asesor)?.Email || (item.Asesor || item.asesor)?.email || '',
         }
       : null,
@@ -40,7 +38,7 @@ function mapPropiedad(item) {
 
 async function apiFetch(url) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Error ${res.status} en ${url}`);
+  if (!res.ok) throw new Error(`Error ${res.status}`);
   return res.json();
 }
 

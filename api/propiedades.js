@@ -28,23 +28,16 @@ async function fetchSimi(token, { limite, cantidad, tipo, operacion, ciudad, alc
   ].join('/');
 
   const url = `${BASE_URL}/ApiSimiweb/response/v2.1.1/filtroInmueble/${path}`;
-  console.log('[SIMI URL]', url);
-
   const res = await fetch(url, {
     headers: { Authorization: getAuthHeader(token) },
   });
 
-  console.log('[SIMI STATUS]', res.status);
-  const text = await res.text();
-  console.log('[SIMI RAW]', text.slice(0, 500));
+  const data = await res.json();
 
-  if (!res.ok) throw new Error(`SIMI error: ${res.status}`);
+  // Token inválido o sin permiso — ignorar silenciosamente
+  if (data.status === 401 || data.status === 403) return [];
 
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`SIMI JSON parse error: ${text.slice(0, 200)}`);
-  }
+  return data.Inmuebles || data.data || [];
 }
 
 export default async function handler(req, res) {
@@ -60,13 +53,10 @@ export default async function handler(req, res) {
 
   const alcobas = habitaciones === '3+' ? '3' : (habitaciones || null);
   const offset = parseInt(pagina) * parseInt(limite);
-
   const params = { limite: offset, cantidad: parseInt(limite), tipo, operacion, ciudad, alcobas };
 
   const tokenMedellin = process.env.SIMI_TOKEN_MEDELLIN;
   const tokenSabaneta = process.env.SIMI_TOKEN_SABANETA;
-
-  console.log('[TOKENS]', tokenMedellin ? 'MED:ok' : 'MED:missing', tokenSabaneta ? 'SAB:ok' : 'SAB:missing');
 
   const tokens = [];
   if (!sede || sede === 'medellin') tokens.push(tokenMedellin);
@@ -74,13 +64,12 @@ export default async function handler(req, res) {
 
   try {
     const results = await Promise.all(tokens.map(token => fetchSimi(token, params)));
-    console.log('[RESULTS KEYS]', results.map(r => Object.keys(r)));
-    const propiedades = results.flatMap(r => r.data || []);
+    const propiedades = results.flat();
 
-    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.status(200).json({ propiedades, total: propiedades.length });
   } catch (err) {
-    console.error('[api/propiedades ERROR]', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[api/propiedades]', err.message);
+    res.status(500).json({ error: 'No se pudieron cargar las propiedades' });
   }
 }
