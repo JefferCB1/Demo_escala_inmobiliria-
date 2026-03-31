@@ -29,6 +29,7 @@ const PayButton = () => {
                 }}
                 aria-haspopup="true"
                 aria-expanded={open}
+                aria-label="Pagos en línea"
             >
                 <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                     style={{ background: 'linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.15) 50%, transparent 65%)' }} />
