@@ -33,8 +33,9 @@ const PropertyDetail = () => {
     return () => clearInterval(interval);
   }, [property?.imagenes?.length]);
 
-  const titulo = titulo || `${property.tipo} en ${property.operacion} - ${property.ubicacion}`;
-  const displayedFeatures = showAllFeatures ? property.caracteristicas : property.caracteristicas.slice(0, 8);
+  const titulo = `${property.tipo} en ${property.operacion} - ${property.ubicacion}`;
+  const caracteristicas = property.caracteristicas || [];
+  const displayedFeatures = showAllFeatures ? caracteristicas : caracteristicas.slice(0, 8);
 
   const schemaData = {
     '@context': 'https://schema.org',
@@ -257,17 +258,18 @@ const PropertyDetail = () => {
                     </div>
                   ))}
                 </div>
-                {property.caracteristicas.length > 8 && (
+                {caracteristicas.length > 8 && (
                   <button 
                     onClick={() => setShowAllFeatures(!showAllFeatures)}
                     className="mt-4 text-escala-accent font-semibold hover:underline"
                   >
-                    {showAllFeatures ? 'Mostrar menos' : `Ver todas las características (${property.caracteristicas.length})`}
+                    {showAllFeatures ? 'Mostrar menos' : `Ver todas las características (${caracteristicas.length})`}
                   </button>
                 )}
               </div>
 
 {/* Location */}
+              {property.coordenadas && (
               <div className="bg-white rounded-2xl p-6 shadow-lg">
                 <h2 className="text-xl font-heading font-bold text-gray-900 mb-4">Ubicación</h2>
                 <div className="h-80 rounded-xl overflow-hidden">
@@ -283,7 +285,7 @@ const PropertyDetail = () => {
                   ></iframe>
                 </div>
                 <div className="flex gap-3 mt-4">
-                  <a 
+                  <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${property.coordenadas.lat},${property.coordenadas.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -294,7 +296,7 @@ const PropertyDetail = () => {
                     </svg>
                     Cómo llegar (Maps)
                   </a>
-                  <a 
+                  <a
                     href={`https://waze.com/ul?ll=${property.coordenadas.lat},${property.coordenadas.lng}&navigate=yes`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -307,6 +309,7 @@ const PropertyDetail = () => {
                   </a>
                 </div>
               </div>
+              )}
             </div>
 
             {/* Sidebar - Agent Card */}
@@ -316,16 +319,18 @@ const PropertyDetail = () => {
                 <div className="text-center mb-6">
                   <div className="w-20 h-20 bg-gradient-to-br from-escala-accent to-orange-600 rounded-full mx-auto mb-3 flex items-center justify-center">
                     <span className="text-2xl font-bold text-white">
-                      {property.agente.nombre.split(' ').map(n => n[0]).join('')}
+                      {property.agente?.nombre
+                        ? property.agente.nombre.split(' ').map(n => n[0]).join('')
+                        : 'E'}
                     </span>
                   </div>
-                  <h3 className="font-bold text-escala-dark">{property.agente.nombre}</h3>
+                  <h3 className="font-bold text-escala-dark">{property.agente?.nombre || 'Escala Inmobiliaria'}</h3>
                   <p className="text-sm text-gray-500">Asesor Inmobiliario</p>
                 </div>
 
                 <div className="space-y-3">
-                  <a 
-                    href={`https://wa.me/+57${property.agente.telefono}?text=Buen dia, estoy interesado en el inmueble ${titulo} código: ${property.codigo}`}
+                  <a
+                    href={`https://wa.me/+57${property.agente?.telefono || '3000000000'}?text=Buen dia, estoy interesado en el inmueble ${titulo} código: ${property.codigo}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full bg-[#25D366] hover:bg-[#20BD5A] text-white py-3 px-4 rounded-xl font-bold transition-colors shadow-lg"
@@ -336,8 +341,8 @@ const PropertyDetail = () => {
                     WhatsApp
                   </a>
                   
-                  <a 
-                    href={`tel:+57${property.agente.telefono}`}
+                  <a
+                    href={`tel:+57${property.agente?.telefono || '3000000000'}`}
                     className="flex items-center justify-center gap-2 w-full bg-escala-dark hover:bg-slate-800 text-white py-3 px-4 rounded-xl font-bold transition-colors shadow-lg"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
