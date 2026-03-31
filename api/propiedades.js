@@ -1,19 +1,31 @@
 const BASE_URL = 'http://simi-api.com';
 
+// Valores permitidos para validación de inputs (A05 - Injection prevention)
+const ALLOWED_SEDES = ['medellin', 'sabaneta'];
+const ALLOWED_HABITACIONES = ['1', '2', '3', '3+'];
+const MAX_LIMITE = 100;
+
 function getAuthHeader(token) {
   return 'Basic ' + Buffer.from(`Authorization:${token}`).toString('base64');
 }
 
-async function fetchSimi(token, { limite, cantidad, tipo, operacion, ciudad, alcobas }) {
+// Sanitiza parámetros numéricos — solo permite dígitos (A05 Injection)
+function safeInt(value, fallback = 0, max = 9999) {
+  const n = parseInt(value, 10);
+  if (isNaN(n) || n < 0 || n > max) return fallback;
+  return n;
+}
+
+async function fetchSimi(token, { limite, cantidad, alcobas }) {
   const path = [
     'limite', limite,
     'total', cantidad,
     'departamento', 0,
-    'ciudad', ciudad || 0,
+    'ciudad', 0,
     'zona', 0,
     'barrio', 0,
-    'tipoInm', tipo || 0,
-    'tipOper', operacion || 0,
+    'tipoInm', 0,
+    'tipOper', 0,
     'areamin', 0,
     'areamax', 0,
     'valmin', 0,
@@ -30,30 +42,37 @@ async function fetchSimi(token, { limite, cantidad, tipo, operacion, ciudad, alc
   const url = `${BASE_URL}/ApiSimiweb/response/v2.1.1/filtroInmueble/${path}`;
   const res = await fetch(url, {
     headers: { Authorization: getAuthHeader(token) },
+    signal: AbortSignal.timeout(10000), // Timeout 10s (A10 - Exceptional conditions)
   });
 
   const data = await res.json();
-
-  // Token inválido o sin permiso — ignorar silenciosamente
   if (data.status === 401 || data.status === 403) return [];
-
   return data.Inmuebles || data.data || [];
 }
 
 export default async function handler(req, res) {
-  const {
-    operacion,
-    tipo,
-    ciudad,
-    habitaciones,
-    limite = '20',
-    pagina = '0',
-    sede,
-  } = req.query;
+  // Solo GET permitido (A01 - Access Control)
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Método no permitido' });
+  }
 
+  const { habitaciones, sede } = req.query;
+
+  // Validar sede contra lista blanca (A05 - Injection)
+  if (sede && !ALLOWED_SEDES.includes(sede)) {
+    return res.status(400).json({ error: 'Parámetro inválido' });
+  }
+
+  // Validar habitaciones contra lista blanca
+  if (habitaciones && !ALLOWED_HABITACIONES.includes(habitaciones)) {
+    return res.status(400).json({ error: 'Parámetro inválido' });
+  }
+
+  // Sanitizar numéricos con límites
+  const limite = Math.min(safeInt(req.query.limite, 20), MAX_LIMITE);
+  const pagina = safeInt(req.query.pagina, 0, 100);
   const alcobas = habitaciones === '3+' ? '3' : (habitaciones || null);
-  const offset = parseInt(pagina) * parseInt(limite);
-  const params = { limite: offset, cantidad: parseInt(limite), tipo, operacion, ciudad, alcobas };
+  const offset = pagina * limite;
 
   const tokenMedellin = process.env.SIMI_TOKEN_MEDELLIN;
   const tokenSabaneta = process.env.SIMI_TOKEN_SABANETA;
@@ -63,12 +82,15 @@ export default async function handler(req, res) {
   if (!sede || sede === 'sabaneta') tokens.push(tokenSabaneta);
 
   try {
-    const results = await Promise.all(tokens.map(token => fetchSimi(token, params)));
+    const results = await Promise.all(
+      tokens.map(token => fetchSimi(token, { limite: offset, cantidad: limite, alcobas }))
+    );
     const propiedades = results.flat();
 
     res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     res.status(200).json({ propiedades, total: propiedades.length });
   } catch (err) {
+    // No exponer detalles internos al cliente (A09 - Logging & Alerting)
     console.error('[api/propiedades]', err.message);
     res.status(500).json({ error: 'No se pudieron cargar las propiedades' });
   }
