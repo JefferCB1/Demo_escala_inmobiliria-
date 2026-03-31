@@ -66,7 +66,7 @@ export default async function handler(req, res) {
     const results = await Promise.all(tokens.map(token => fetchSimi(token, params)));
     const propiedades = results.flat();
 
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     res.status(200).json({ propiedades, total: propiedades.length });
   } catch (err) {
     console.error('[api/propiedades]', err.message);

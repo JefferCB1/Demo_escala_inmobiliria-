@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
     const propiedad = Array.isArray(data) ? data[0] : data;
 
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     res.status(200).json({ propiedad });
   } catch (err) {
     console.error('[api/propiedad/[id]]', err.message);
