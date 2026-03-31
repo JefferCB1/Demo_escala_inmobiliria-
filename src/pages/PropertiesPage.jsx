@@ -137,6 +137,8 @@ const PropertiesPage = () => {
             loop
             muted
             playsInline
+            preload="none"
+            aria-hidden="true"
             className="w-full h-full object-cover opacity-100"
           >
             <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-panorama-of-a-city-4328-large.mp4" type="video/mp4" />

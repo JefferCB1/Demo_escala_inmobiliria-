@@ -30,11 +30,37 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/Logo_inmboliaria.png" />
     
-    <!-- Fonts -->
+    <!-- Preconnect críticos para velocidad de carga -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://lh3.googleusercontent.com" crossorigin>
+    <link rel="preconnect" href="https://simi-api.com" crossorigin>
+    <link rel="dns-prefetch" href="https://assets.mixkit.co">
+    <link rel="dns-prefetch" href="https://wa.me">
+
+    <!-- Fonts no bloqueantes (evita render-blocking) -->
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    </noscript>
     
+    <!-- Schema Markup - WebSite con SearchAction para rich snippets -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Escala Inmobiliaria",
+        "url": "https://escalainmobiliaria.com.co",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://escalainmobiliaria.com.co/propiedades?tipo={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+
     <!-- Schema Markup - LocalBusiness -->
     <script type="application/ld+json">
     {
