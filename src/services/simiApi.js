@@ -1,23 +1,43 @@
 // SIMI tiene dos formatos según el endpoint:
 // - Lista (/filtroInmueble): Tipo_Inmueble, Canon, Alcobas, banios, Barrio, Ciudad, Gestion, foto1
-// - Detalle (/inmueble):     tpinmu, ValorCanon, alcobas, banos, NombreB, nciudad, NombresGestion, fotos[]
+// - Detalle (/inmueble):     tpinmu, ValorCanon, alcobas, banos, NombreB, nciudad, NombresGestion, fotos[{foto,posi}]
 function mapPropiedad(item) {
   // Precio: lista usa "2,800,000" con comas; detalle usa "2800000" sin comas
   const precioRaw = item.ValorCanon || item.Canon || item.ValorVenta || item.Venta || '0';
   const precio = parseFloat(String(precioRaw).replace(/[^0-9.]/g, '')) || 0;
 
-  // Fotos: lista usa foto1/foto2...; detalle puede usar array fotos[] o foto1
-  const fotosArray = Array.isArray(item.fotos) ? item.fotos.map(f => f?.url || f?.Url || f) : [];
+  // Fotos: detalle usa fotos[{foto, posi}]; lista usa foto1/foto2...
+  const fotosArray = Array.isArray(item.fotos) && item.fotos.length > 0
+    ? item.fotos.map(f => f?.foto || f?.url || f).filter(Boolean)
+    : [];
   const fotosIndividuales = [item.foto1, item.foto2, item.foto3, item.foto4, item.foto5].filter(Boolean);
   const imagenes = fotosArray.length > 0 ? fotosArray : fotosIndividuales;
 
-  const ciudad = item.nciudad || item.Ciudad || '';
-  const barrio = item.NombreB || item.Barrio || '';
+  // Asesor: detalle devuelve array; tomamos el primero
+  const asesorRaw = Array.isArray(item.asesor) ? item.asesor[0] : item.asesor;
+  const agente = asesorRaw
+    ? {
+        nombre: asesorRaw.ntercero || asesorRaw.Nombre || '',
+        telefono: asesorRaw.celular || asesorRaw.fijo || '',
+        email: asesorRaw.correo || asesorRaw.Email || '',
+        foto: asesorRaw.FotoAsesor || '',
+      }
+    : null;
+
+  // Características: detalle tiene tres arrays separados
+  const caracteristicas = [
+    ...(item.caracteristicasInternas || []),
+    ...(item.caracteristicasExternas || []),
+    ...(item.caracteristicasAlrededores || []),
+  ].map(c => c?.Descripcion?.trim()).filter(Boolean);
+
+  const ciudad = item.nciudad || item.ciudad || item.Ciudad || '';
+  const barrio = item.NombreB || item.barrio || item.Barrio || '';
 
   return {
-    id: item.Codigo_Inmueble || item.idInm || item.codinm,
+    id: item.Codigo_Inmueble || item.idInm,
     tipo: item.tpinmu || item.Tipo_Inmueble || '',
-    operacion: item.NombresGestion || item.Gestion || (precio > 0 ? 'Arriendo' : 'Venta'),
+    operacion: item.NombresGestion || item.oper || item.Gestion || (precio > 0 ? 'Arriendo' : 'Venta'),
     precio,
     ubicacion: [barrio, ciudad].filter(Boolean).join(', '),
     area: parseFloat(item.AreaConstruida || item.AreaLote || 0),
@@ -27,15 +47,18 @@ function mapPropiedad(item) {
     imagen: imagenes[0] || '',
     imagenes,
     descripcion: item.descripcionlarga || item.descrip || '',
-    direccion: item.Direccion || '',
+    direccion: (item.Direccion || '').trim(),
     estrato: item.Estrato || '',
-    departamento: item.Departamento || 'Antioquia',
+    departamento: item.ndepto || item.depto || item.Departamento || 'Antioquia',
     ciudad,
     barrio,
-    zona: item.NombreZ || item.Zona || '',
+    zona: item.NombreZ || item.zona || item.Zona || '',
     codigo: item.Codigo_Inmueble || item.idInm,
     administracion: parseFloat(String(item.Administracion || '0').replace(/[^0-9.]/g, '')),
-    logo: item.logo || '',
+    logo: item.inmobiliaria?.logo || item.logo || '',
+    agente,
+    caracteristicas,
+    portales: item.portales?.data || [],
     coordenadas: item.latitud && item.longitud
       ? { lat: parseFloat(item.latitud), lng: parseFloat(item.longitud) }
       : null,
