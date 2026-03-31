@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     ]);
     const destacados = [...medellin, ...sabaneta];
 
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
     res.status(200).json({ destacados });
   } catch (err) {
     console.error('[api/destacados]', err.message);
