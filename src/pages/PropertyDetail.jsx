@@ -138,16 +138,18 @@ const PropertyDetail = () => {
             </div>
 
             {/* Navigation arrows */}
-            <button 
+            <button
               onClick={() => setImagenActual((imagenActual - 1 + property.imagenes.length) % property.imagenes.length)}
+              aria-label="Imagen anterior"
               className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             >
               <svg className="w-6 h-6 text-escala-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button 
+            <button
               onClick={() => setImagenActual((imagenActual + 1) % property.imagenes.length)}
+              aria-label="Imagen siguiente"
               className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             >
               <svg className="w-6 h-6 text-escala-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,6 +163,7 @@ const PropertyDetail = () => {
                 <button
                   key={index}
                   onClick={() => setImagenActual(index)}
+                  aria-label={`Ver imagen ${index + 1}`}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
                     imagenActual === index ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80'
                   }`}
