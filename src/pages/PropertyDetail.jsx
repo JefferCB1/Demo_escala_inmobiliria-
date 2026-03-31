@@ -33,33 +33,7 @@ const PropertyDetail = () => {
     return () => clearInterval(interval);
   }, [property?.imagenes?.length]);
 
-  const titulo = `${property.tipo} en ${property.operacion} - ${property.ubicacion}`;
-  const caracteristicas = property.caracteristicas || [];
-  const displayedFeatures = showAllFeatures ? caracteristicas : caracteristicas.slice(0, 8);
-
-  const schemaData = {
-    '@context': 'https://schema.org',
-    '@type': 'RealEstateListing',
-    name: titulo,
-    description: property.descripcion,
-    url: `https://escalainmobiliaria.com.co/propiedad/${property.id}`,
-    image: property.imagenes?.[0],
-    numberOfRooms: property.habitaciones,
-    floorSize: { '@type': 'QuantitativeValue', value: property.area, unitCode: 'MTK' },
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: property.ubicacion,
-      addressRegion: property.departamento,
-      addressCountry: 'CO',
-    },
-    offers: {
-      '@type': 'Offer',
-      price: property.precio,
-      priceCurrency: 'COP',
-      availability: 'https://schema.org/InStock',
-    },
-  };
-
+  // ── Guards PRIMERO — antes de cualquier acceso a property ──
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -86,6 +60,34 @@ const PropertyDetail = () => {
       </div>
     );
   }
+
+  // ── A partir de aquí property está garantizado ──
+  const titulo = `${property.tipo} en ${property.operacion} - ${property.ubicacion}`;
+  const caracteristicas = property.caracteristicas || [];
+  const displayedFeatures = showAllFeatures ? caracteristicas : caracteristicas.slice(0, 8);
+
+  const schemaData = {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    name: titulo,
+    description: property.descripcion,
+    url: `https://escalainmobiliaria.com.co/propiedad/${property.id}`,
+    image: property.imagenes?.[0],
+    numberOfRooms: property.habitaciones,
+    floorSize: { '@type': 'QuantitativeValue', value: property.area, unitCode: 'MTK' },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: property.ubicacion,
+      addressRegion: property.departamento,
+      addressCountry: 'CO',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: property.precio,
+      priceCurrency: 'COP',
+      availability: 'https://schema.org/InStock',
+    },
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
