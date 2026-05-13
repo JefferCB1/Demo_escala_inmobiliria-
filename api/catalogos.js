@@ -24,6 +24,7 @@ function pickId(item) {
     item?.idCiudad ??
     item?.idZona ??
     item?.idBarrio ??
+    item?.idTipoInm ??
     item?.idTipoInmueble ??
     item?.idGestion ??
     item?.idTpInm ??
@@ -88,27 +89,32 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Configuración inválida' });
   }
 
-  // Antioquia es el departamento principal de la inmobiliaria.
-  // Si quisiéramos multi-departamento, descubriríamos ID dinámicamente.
-  const ID_ANTIOQUIA_DEFAULT = 5;
+  // ID del departamento principal de Escala (verificado contra catálogo real).
+  const ID_ANTIOQUIA_DEFAULT = 11008;
 
   // Modo debug: devuelve respuesta cruda de SIMI para inspeccionar campos.
-  // Útil solo en preview/dev — protegido por rate limit estricto.
+  // Resuelve el ID de Antioquia dinámicamente antes de pedir ciudades.
   if (req.query.debug === '1') {
     try {
-      const [dep, ciu, tip, ges] = await Promise.all([
+      const [depRaw, tipRaw, gesRaw] = await Promise.all([
         fetchSimi(token, '/ApiSimiweb/response/v2/departamento').catch(e => ({ error: e.message })),
-        fetchSimi(token, `/ApiSimiweb/response/v2/ciudad/idDepartamento/${ID_ANTIOQUIA_DEFAULT}`).catch(e => ({ error: e.message })),
         fetchSimi(token, '/ApiSimiweb/response/v2/tipoInmuebles/unique/1').catch(e => ({ error: e.message })),
         fetchSimi(token, '/ApiSimiweb/response/gestion').catch(e => ({ error: e.message })),
       ]);
+      const depArr = mapCatalogo(depRaw);
+      const antioquia = depArr.find(d => /antioquia/i.test(d.nombre));
+      const idDep = antioquia?.id || ID_ANTIOQUIA_DEFAULT;
+      const ciuRaw = await fetchSimi(token, `/ApiSimiweb/response/v2/ciudad/idDepartamento/${idDep}`)
+        .catch(e => ({ error: e.message }));
+
       return res.status(200).json({
         _debug: true,
         _note: 'Respuestas crudas de SIMI. Inspecciona los nombres de campo y compártelos.',
-        departamentos: dep,
-        ciudadesAntioquia: ciu,
-        tipos: tip,
-        gestiones: ges,
+        _idDepartamentoUsado: idDep,
+        departamentos: depRaw,
+        ciudadesAntioquia: ciuRaw,
+        tipos: tipRaw,
+        gestiones: gesRaw,
       });
     } catch (err) {
       return res.status(500).json({ error: 'Debug falló', message: err.message });
