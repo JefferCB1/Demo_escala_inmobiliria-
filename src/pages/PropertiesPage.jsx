@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getPropiedades } from '../services/simiApi';
+import { getPropiedades, getCatalogos } from '../services/simiApi';
 import { formatPrice } from '../utils/formatters';
+
+// Normaliza opciones: acepta strings ['1','2'] o {value,label} [{value:'1',label:'1 habitación'}]
+const normalizeOpts = opts => opts.map(o => (typeof o === 'string' ? { value: o, label: o } : o));
 
 const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
   const [open, setOpen] = useState(false);
+  const opts = normalizeOpts(options);
+  const selected = opts.find(o => String(o.value) === String(value));
   return (
     <div className="relative flex-1 min-w-0">
       <button
@@ -17,22 +22,22 @@ const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
         <span className="text-gray-400 flex-shrink-0">{icon}</span>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
-          <p className="text-sm font-semibold text-escala-dark truncate">{value || allLabel}</p>
+          <p className="text-sm font-semibold text-escala-dark truncate">{selected ? selected.label : allLabel}</p>
         </div>
         <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200]">
+        <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200] max-h-80 overflow-y-auto">
           <button type="button" onMouseDown={() => { onChange(''); setOpen(false); }}
             className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${!value ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
             {allLabel}
           </button>
-          {options.map(opt => (
-            <button key={opt} type="button" onMouseDown={() => { onChange(opt); setOpen(false); }}
-              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${value === opt ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
-              {opt}
+          {opts.map(opt => (
+            <button key={opt.value} type="button" onMouseDown={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${String(value) === String(opt.value) ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
+              {opt.label}
             </button>
           ))}
         </div>
@@ -41,74 +46,97 @@ const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
   );
 };
 
+// Busca un item del catálogo por nombre (matching parcial, case-insensitive).
+const findIdByName = (catalogo, name) => {
+  if (!name || !catalogo?.length) return '';
+  const target = name.toLowerCase().trim();
+  // Match exacto primero, luego parcial
+  const exact = catalogo.find(c => c.nombre.toLowerCase() === target);
+  if (exact) return String(exact.id);
+  const partial = catalogo.find(c => c.nombre.toLowerCase().includes(target));
+  return partial ? String(partial.id) : '';
+};
+
 const PropertiesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [filterTipo, setFilterTipo] = useState('todos');
-  const [filterOperacion, setFilterOperacion] = useState('todos');
-  const [filterUbicacion, setFilterUbicacion] = useState('todos');
+  // Filtros: ahora almacenamos IDs (string) de SIMI; '' significa "todos"
+  const [filterTipoId, setFilterTipoId] = useState('');
+  const [filterOperacionId, setFilterOperacionId] = useState('');
+  const [filterUbicacionId, setFilterUbicacionId] = useState('');
   const [filterHabitaciones, setFilterHabitaciones] = useState('todos');
   const [propiedades, setPropiedades] = useState([]);
+  const [catalogos, setCatalogos] = useState({ ciudades: [], tipos: [], gestiones: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Apply URL params from SmartSearch
+  // Carga catálogos una sola vez (cache CDN 24h)
   useEffect(() => {
+    getCatalogos()
+      .then(setCatalogos)
+      .catch(() => {}); // Si falla, los dropdowns quedan vacíos pero el listado funciona.
+  }, []);
+
+  // Mapea params de URL (nombres) a IDs cuando los catálogos estén disponibles
+  useEffect(() => {
+    if (!catalogos.tipos.length && !catalogos.ciudades.length && !catalogos.gestiones.length) return;
     const operacion = searchParams.get('operacion');
     const tipo = searchParams.get('tipo');
     const ciudad = searchParams.get('ciudad');
     const habitaciones = searchParams.get('habitaciones');
-    if (operacion) setFilterOperacion(operacion);
-    if (tipo) setFilterTipo(tipo);
-    if (ciudad) setFilterUbicacion(ciudad);
+    if (operacion) setFilterOperacionId(findIdByName(catalogos.gestiones, operacion));
+    if (tipo) setFilterTipoId(findIdByName(catalogos.tipos, tipo));
+    if (ciudad) setFilterUbicacionId(findIdByName(catalogos.ciudades, ciudad));
     if (habitaciones) setFilterHabitaciones(habitaciones);
-  }, [searchParams]);
+  }, [searchParams, catalogos]);
 
+  // Carga propiedades. Refetch automático cuando cambian los filtros server-side.
   const cargarPropiedades = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Pedimos 300 por sede para tener un dataset amplio sobre el cual
-      // aplicar filtros client-side (ciudad/tipo/operación) y mostrar
-      // resultados comparables al portal SIMI original.
-      const { propiedades: data } = await getPropiedades({ limite: '300' });
+      const { propiedades: data } = await getPropiedades({
+        limite: '50',
+        ciudad: filterUbicacionId || undefined,
+        tipoInm: filterTipoId || undefined,
+        tipOper: filterOperacionId || undefined,
+        // habitaciones se mantiene client-side por el caso "3+" (SIMI usa 5+ no 3+)
+      });
       setPropiedades(data);
     } catch {
       setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [filterUbicacionId, filterTipoId, filterOperacionId]);
 
   useEffect(() => {
     cargarPropiedades();
   }, [cargarPropiedades]);
 
-  // Filtrado client-side (SIMI usa IDs numéricos, filtramos sobre los datos mapeados)
+  // Filtro client-side solo para habitaciones (SIMI no soporta "3+" directamente)
   const propiedadesFiltradas = useMemo(() => {
+    if (filterHabitaciones === 'todos') return propiedades;
     return propiedades.filter(p => {
-      if (filterOperacion !== 'todos') {
-        const op = (p.operacion || '').toLowerCase();
-        if (!op.includes(filterOperacion.toLowerCase())) return false;
-      }
-      if (filterTipo !== 'todos') {
-        if ((p.tipo || '').toLowerCase() !== filterTipo.toLowerCase()) return false;
-      }
-      if (filterUbicacion !== 'todos') {
-        const ciudad = (p.ciudad || p.ubicacion || '').toLowerCase();
-        if (!ciudad.includes(filterUbicacion.toLowerCase())) return false;
-      }
-      if (filterHabitaciones !== 'todos') {
-        const habs = parseInt(p.habitaciones || 0);
-        if (filterHabitaciones === '3+') {
-          if (habs < 3) return false;
-        } else {
-          if (habs !== parseInt(filterHabitaciones)) return false;
-        }
-      }
-      return true;
+      const habs = parseInt(p.habitaciones || 0);
+      if (filterHabitaciones === '3+') return habs >= 3;
+      return habs === parseInt(filterHabitaciones);
     });
-  }, [propiedades, filterOperacion, filterTipo, filterUbicacion, filterHabitaciones]);
+  }, [propiedades, filterHabitaciones]);
+
+  // Opciones para los dropdowns (orden estable, filtrado de vacíos)
+  const tipoOptions = useMemo(
+    () => catalogos.tipos.map(t => ({ value: String(t.id), label: t.nombre })),
+    [catalogos.tipos]
+  );
+  const ciudadOptions = useMemo(
+    () => catalogos.ciudades.map(c => ({ value: String(c.id), label: c.nombre })),
+    [catalogos.ciudades]
+  );
+
+  // ID de "Arriendo" y "Venta" derivados del catálogo gestion
+  const idArriendo = findIdByName(catalogos.gestiones, 'arriendo');
+  const idVenta = findIdByName(catalogos.gestiones, 'venta');
 
   const schemaData = {
     '@context': 'https://schema.org',
@@ -177,18 +205,23 @@ const PropertiesPage = () => {
                 left: '4px',
                 background: 'linear-gradient(135deg, #FF6B00, #e66000)',
                 boxShadow: '0 4px 14px rgba(255,107,0,0.35)',
-                transform: filterOperacion === 'venta' ? 'translateX(100%)' : 'translateX(0)',
+                transform: filterOperacionId === idVenta && idVenta ? 'translateX(100%)' : 'translateX(0)',
                 transition: 'transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1)',
+                opacity: filterOperacionId ? 1 : 0,
               }}
             />
-            {[{ key: 'arriendo', label: 'Arriendo' }, { key: 'venta', label: 'Venta' }].map(op => (
+            {[
+              { id: idArriendo, label: 'Arriendo' },
+              { id: idVenta, label: 'Venta' },
+            ].map(op => (
               <button
-                key={op.key}
+                key={op.label}
                 type="button"
-                onClick={() => setFilterOperacion(op.key)}
-                className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold"
+                onClick={() => setFilterOperacionId(filterOperacionId === op.id ? '' : op.id)}
+                disabled={!op.id}
+                className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold disabled:opacity-40"
                 style={{
-                  color: filterOperacion === op.key ? '#fff' : '#6b7280',
+                  color: filterOperacionId === op.id && op.id ? '#fff' : '#6b7280',
                   transition: 'color 0.25s ease',
                 }}
               >
@@ -203,18 +236,18 @@ const PropertiesPage = () => {
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
                 label="Tipo de inmueble"
-                value={filterTipo === 'todos' ? '' : filterTipo}
-                onChange={(v) => setFilterTipo(v || 'todos')}
-                options={['Apartamento', 'Apartaestudio', 'Casa', 'Casa Campestre', 'Oficina']}
+                value={filterTipoId}
+                onChange={setFilterTipoId}
+                options={tipoOptions}
                 allLabel="Todos los tipos"
               />
               <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
                 label="Ciudad / Municipio"
-                value={filterUbicacion === 'todos' ? '' : filterUbicacion}
-                onChange={(v) => setFilterUbicacion(v || 'todos')}
-                options={['Medellín', 'Sabaneta', 'Itaguí', 'Envigado', 'La Estrella', 'Caldas']}
+                value={filterUbicacionId}
+                onChange={setFilterUbicacionId}
+                options={ciudadOptions}
                 allLabel="Todas las ciudades"
               />
               <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
@@ -227,9 +260,14 @@ const PropertiesPage = () => {
                 allLabel="Cualquier cantidad"
               />
               {/* Botón limpiar — solo si hay filtros activos */}
-              {(filterTipo !== 'todos' || filterUbicacion !== 'todos' || filterHabitaciones !== 'todos') && (
+              {(filterTipoId || filterUbicacionId || filterOperacionId || filterHabitaciones !== 'todos') && (
                 <button
-                  onClick={() => { setFilterTipo('todos'); setFilterUbicacion('todos'); setFilterHabitaciones('todos'); }}
+                  onClick={() => {
+                    setFilterTipoId('');
+                    setFilterUbicacionId('');
+                    setFilterOperacionId('');
+                    setFilterHabitaciones('todos');
+                  }}
                   className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-4 rounded-2xl text-sm font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
