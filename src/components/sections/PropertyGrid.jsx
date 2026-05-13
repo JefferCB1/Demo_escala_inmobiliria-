@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getPropiedades } from '../../services/simiApi';
+import { getDestacados, getPropiedades } from '../../services/simiApi';
 import { formatPrice } from '../../utils/formatters';
 
 const WA_NUMBER = '573009122101';
@@ -56,13 +56,26 @@ const PropertyCard = ({ propiedad }) => (
   </div>
 );
 
-const SkeletonCard = () => (
-  <div className="flex-shrink-0 w-64 sm:w-72 bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 animate-pulse">
-    <div className="h-40 bg-gray-200" />
+const SkeletonCard = ({ delay = 0 }) => (
+  <div
+    className="relative flex-shrink-0 w-64 sm:w-72 bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 animate-[slideUp_0.6s_ease-out_both]"
+    style={{ animationDelay: `${delay}ms` }}
+    aria-hidden="true"
+  >
+    <div className="relative h-40 bg-gradient-to-br from-gray-200 to-gray-100 overflow-hidden">
+      <div className="absolute top-2 left-2 h-5 w-16 rounded-full bg-gray-300/70" />
+    </div>
     <div className="p-3 space-y-2">
-      <div className="h-5 bg-gray-200 rounded w-3/4" />
-      <div className="h-3 bg-gray-200 rounded w-1/2" />
-      <div className="h-8 bg-gray-200 rounded-lg mt-3" />
+      <div className="h-5 w-2/3 rounded bg-orange-100" />
+      <div className="h-3 w-3/4 rounded bg-gray-200" />
+      <div className="flex items-center gap-2 pt-1">
+        <div className="h-3 w-10 rounded bg-gray-200" />
+        <div className="h-3 w-12 rounded bg-gray-200" />
+      </div>
+      <div className="h-8 rounded-lg bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100 mt-3" />
+    </div>
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" />
     </div>
   </div>
 );
@@ -73,15 +86,25 @@ const PropertyGrid = () => {
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    getPropiedades({ limite: '8' })
-      .then(({ propiedades: data }) => setPropiedades(data.slice(0, 8)))
+    // Destacados es endpoint dedicado (más rápido + precacheado SIMI).
+    // Fallback a getPropiedades si destacados viene vacío.
+    getDestacados()
+      .then(data => {
+        if (data && data.length > 0) {
+          setPropiedades(data.slice(0, 8));
+          return;
+        }
+        return getPropiedades({ limite: '8' }).then(({ propiedades }) =>
+          setPropiedades(propiedades.slice(0, 8))
+        );
+      })
       .catch(() => setPropiedades([]))
       .finally(() => setLoading(false));
   }, []);
 
   const allCards = propiedades.length > 0
     ? [...propiedades, ...propiedades]
-    : Array.from({ length: 8 });
+    : [];
 
   return (
     <section className="relative w-full py-12 px-4 sm:px-6 z-10 bg-white overflow-hidden">
@@ -108,10 +131,12 @@ const PropertyGrid = () => {
             style={{ animationPlayState: isPaused || loading ? 'paused' : 'running' }}
           >
             {loading
-              ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-              : allCards.map((propiedad, index) => (
-                  <PropertyCard key={`${propiedad.id}-${index}`} propiedad={propiedad} />
-                ))
+              ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} delay={i * 80} />)
+              : allCards.length > 0
+                ? allCards.map((propiedad, index) => (
+                    <PropertyCard key={`${propiedad.id}-${index}`} propiedad={propiedad} />
+                  ))
+                : Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} delay={i * 80} />)
             }
           </div>
         </div>
