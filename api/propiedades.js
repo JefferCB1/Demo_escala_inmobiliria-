@@ -3,7 +3,9 @@ const BASE_URL = 'https://simi-api.com';
 // Valores permitidos para validación de inputs (A05 - Injection prevention)
 const ALLOWED_SEDES = ['medellin', 'sabaneta'];
 const ALLOWED_HABITACIONES = ['1', '2', '3', '3+'];
-const MAX_LIMITE = 100;
+// Tope alto para traer el catálogo completo por sede.
+// Los filtros (ciudad/tipo/operación) se aplican client-side sobre este dataset.
+const MAX_LIMITE = 500;
 
 function getAuthHeader(token) {
   return 'Basic ' + Buffer.from(`Authorization:${token}`).toString('base64');

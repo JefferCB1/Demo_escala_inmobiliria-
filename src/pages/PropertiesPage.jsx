@@ -68,7 +68,10 @@ const PropertiesPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const { propiedades: data } = await getPropiedades({ limite: '50' });
+      // Pedimos 300 por sede para tener un dataset amplio sobre el cual
+      // aplicar filtros client-side (ciudad/tipo/operación) y mostrar
+      // resultados comparables al portal SIMI original.
+      const { propiedades: data } = await getPropiedades({ limite: '300' });
       setPropiedades(data);
     } catch {
       setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
