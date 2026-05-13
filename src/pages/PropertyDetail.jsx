@@ -14,6 +14,7 @@ const PropertyDetail = () => {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -24,14 +25,32 @@ const PropertyDetail = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Auto carousel
+  // Auto carousel — pausado mientras el lightbox está abierto
   useEffect(() => {
-    if (!property?.imagenes?.length) return;
+    if (!property?.imagenes?.length || lightboxOpen) return;
     const interval = setInterval(() => {
       setImagenActual((prev) => (prev + 1) % property.imagenes.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [property?.imagenes?.length]);
+  }, [property?.imagenes?.length, lightboxOpen]);
+
+  // Lightbox: bloqueo de scroll + atajos de teclado (ESC cerrar, ← → navegar)
+  useEffect(() => {
+    if (!lightboxOpen || !property?.imagenes?.length) return;
+    const total = property.imagenes.length;
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setLightboxOpen(false);
+      if (e.key === 'ArrowRight') setImagenActual(prev => (prev + 1) % total);
+      if (e.key === 'ArrowLeft') setImagenActual(prev => (prev - 1 + total) % total);
+    };
+    window.addEventListener('keydown', handleKey);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [lightboxOpen, property?.imagenes?.length]);
 
   // ── Guards PRIMERO — antes de cualquier acceso a property ──
   if (loading) {
@@ -141,17 +160,31 @@ const PropertyDetail = () => {
 
         {/* Image Gallery - Full Width Carousel */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-8">
-          <div className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl group">
+          <div
+            className="relative h-[300px] sm:h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl group cursor-zoom-in"
+            onClick={() => setLightboxOpen(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') setLightboxOpen(true); }}
+            aria-label="Ampliar imagen"
+          >
             {property.imagenes.map((img, index) => (
-              <img 
+              <img
                 key={index}
-                src={img} 
+                src={img}
                 alt={`${titulo} - Imagen ${index + 1}`}
                 className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
                   imagenActual === index ? 'opacity-100' : 'opacity-0'
                 }`}
               />
             ))}
+
+            {/* Hint visual: ícono lupa que aparece al hacer hover */}
+            <div className="absolute top-4 right-4 w-10 h-10 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zm-7-3v6m-3-3h6" />
+              </svg>
+            </div>
             
             {/* Overlay with operation badge */}
             <div className="absolute top-4 left-4">
@@ -162,7 +195,7 @@ const PropertyDetail = () => {
 
             {/* Navigation arrows */}
             <button
-              onClick={() => setImagenActual((imagenActual - 1 + property.imagenes.length) % property.imagenes.length)}
+              onClick={(e) => { e.stopPropagation(); setImagenActual((imagenActual - 1 + property.imagenes.length) % property.imagenes.length); }}
               aria-label="Imagen anterior"
               className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             >
@@ -171,7 +204,7 @@ const PropertyDetail = () => {
               </svg>
             </button>
             <button
-              onClick={() => setImagenActual((imagenActual + 1) % property.imagenes.length)}
+              onClick={(e) => { e.stopPropagation(); setImagenActual((imagenActual + 1) % property.imagenes.length); }}
               aria-label="Imagen siguiente"
               className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             >
@@ -185,7 +218,7 @@ const PropertyDetail = () => {
               {property.imagenes.map((_, index) => (
                 <button
                   key={index}
-                  onClick={() => setImagenActual(index)}
+                  onClick={(e) => { e.stopPropagation(); setImagenActual(index); }}
                   aria-label={`Ver imagen ${index + 1}`}
                   className={`w-3 h-3 rounded-full transition-all duration-300 ${
                     imagenActual === index ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80'
@@ -416,6 +449,99 @@ const PropertyDetail = () => {
       </main>
 
       <Footer />
+
+      {/* Lightbox / vista ampliada */}
+      {lightboxOpen && property?.imagenes?.length > 0 && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center animate-[fadeIn_0.25s_ease-out] cursor-zoom-out"
+          onClick={() => setLightboxOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vista ampliada de imagen"
+        >
+          {/* Botón cerrar */}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setLightboxOpen(false); }}
+            aria-label="Cerrar vista ampliada"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Contador */}
+          <div className="absolute top-4 left-4 sm:top-6 sm:left-6 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white text-sm font-medium z-10">
+            {imagenActual + 1} / {property.imagenes.length}
+          </div>
+
+          {/* Flecha anterior */}
+          {property.imagenes.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setImagenActual((imagenActual - 1 + property.imagenes.length) % property.imagenes.length);
+              }}
+              aria-label="Imagen anterior"
+              className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+
+          {/* Imagen — click no cierra (stopPropagation) */}
+          <img
+            src={property.imagenes[imagenActual]}
+            alt={`${titulo} - Imagen ${imagenActual + 1} ampliada`}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-[95vw] max-h-[85vh] sm:max-w-[90vw] sm:max-h-[90vh] object-contain rounded-lg select-none animate-[fadeIn_0.3s_ease-out]"
+            draggable={false}
+          />
+
+          {/* Flecha siguiente */}
+          {property.imagenes.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setImagenActual((imagenActual + 1) % property.imagenes.length);
+              }}
+              aria-label="Imagen siguiente"
+              className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all z-10"
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
+
+          {/* Dots indicator */}
+          {property.imagenes.length > 1 && property.imagenes.length <= 12 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              {property.imagenes.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setImagenActual(index); }}
+                  aria-label={`Ver imagen ${index + 1}`}
+                  className={`h-2 rounded-full transition-all ${
+                    imagenActual === index ? 'bg-white w-8' : 'bg-white/40 hover:bg-white/70 w-2'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Hint inferior — instrucciones discretas */}
+          <p className="absolute bottom-3 right-4 text-xs text-white/40 font-medium hidden sm:block">
+            ESC para cerrar · ← → para navegar
+          </p>
+        </div>
+      )}
     </div>
   );
 };
