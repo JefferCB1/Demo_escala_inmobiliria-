@@ -5,6 +5,9 @@ const BASE_URL = 'https://simi-api.com';
 // Whitelists para validación de inputs (A05 - Injection prevention)
 const ALLOWED_SEDES = ['medellin', 'sabaneta'];
 const ALLOWED_HABITACIONES = ['1', '2', '3', '3+'];
+// Campos de ordenamiento aceptados por SIMI (filtroInmueble v2.1.1)
+const ALLOWED_CAMPO = ['precio', 'fecha', 'area'];
+const ALLOWED_ORDER = ['asc', 'desc'];
 
 // Tope alto para traer todo el catálogo de SIMI cuando no hay filtros server-side.
 const MAX_LIMITE = 500;
@@ -37,8 +40,8 @@ async function fetchSimi(token, params) {
     'areamax', 0,
     'valmin', 0,
     'valmax', 0,
-    'campo', 0,
-    'order', 0,
+    'campo', params.campo || 0,
+    'order', params.order || 0,
     'banios', 0,
     'alcobas', params.alcobas || 0,
     'garajes', 0,
@@ -81,6 +84,9 @@ export default async function handler(req, res) {
   const ciudad = safeInt(req.query.ciudad, 0, MAX_FILTER_ID);
   const tipoInm = safeInt(req.query.tipoInm, 0, MAX_FILTER_ID);
   const tipOper = safeInt(req.query.tipOper, 0, MAX_FILTER_ID);
+  // Ordenamiento — solo strings de la whitelist, los demás se ignoran (0 = default SIMI)
+  const campo = ALLOWED_CAMPO.includes(req.query.campo) ? req.query.campo : 0;
+  const order = ALLOWED_ORDER.includes(req.query.order) ? req.query.order : 0;
 
   // Paginación
   const limite = Math.min(safeInt(req.query.limite, 50), MAX_LIMITE);
@@ -103,6 +109,8 @@ export default async function handler(req, res) {
       ciudad,
       tipoInm,
       tipOper,
+      campo,
+      order,
       alcobas,
     };
 

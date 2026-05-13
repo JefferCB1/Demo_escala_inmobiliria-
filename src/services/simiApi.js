@@ -78,6 +78,9 @@ export async function getPropiedades(filtros = {}) {
   if (filtros.tipoInm) params.set('tipoInm', filtros.tipoInm);
   if (filtros.tipOper) params.set('tipOper', filtros.tipOper);
   if (filtros.departamento) params.set('departamento', filtros.departamento);
+  // Ordenamiento server-side
+  if (filtros.campo) params.set('campo', filtros.campo);
+  if (filtros.order) params.set('order', filtros.order);
   // Paginación + filtros heredados
   if (filtros.habitaciones) params.set('habitaciones', filtros.habitaciones);
   if (filtros.limite) params.set('limite', filtros.limite);
