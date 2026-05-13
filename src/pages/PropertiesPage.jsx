@@ -95,8 +95,11 @@ const PropertiesPage = () => {
     setLoading(true);
     setError(null);
     try {
+      // 200 por sede (400 totales). Con filtros server-side, la mayoría de
+      // combinaciones caben holgadas. Si en el futuro queremos "Ver más",
+      // implementar paginación con state `pagina`.
       const { propiedades: data } = await getPropiedades({
-        limite: '50',
+        limite: '200',
         ciudad: filterUbicacionId || undefined,
         tipoInm: filterTipoId || undefined,
         tipOper: filterOperacionId || undefined,
