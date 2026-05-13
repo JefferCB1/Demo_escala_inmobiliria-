@@ -8,7 +8,7 @@ function ScrollToTop() {
     }, [pathname]);
     return null;
 }
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider, Helmet } from 'react-helmet-async';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -62,6 +62,16 @@ function HomePage() {
 
     return (
         <>
+            <Helmet>
+                <title>Escala Inmobiliaria - Propiedades en Medellín y Sabaneta | Compra, Venta y Arriendo</title>
+                <meta name="description" content="Escala Inmobiliaria: expertos en bienes raíces en Medellín y Sabaneta. Encuentra casas, apartamentos y proyectos nuevos. Asesoramiento VIP 24/7." />
+                <link rel="canonical" href="https://escalainmobiliaria.com.co/" />
+                <meta property="og:title" content="Escala Inmobiliaria - Propiedades en Medellín y Sabaneta" />
+                <meta property="og:description" content="Expertos en bienes raíces en Medellín y Sabaneta. Encuentra casas, apartamentos y proyectos nuevos con asesoramiento VIP 24/7." />
+                <meta property="og:url" content="https://escalainmobiliaria.com.co/" />
+                <meta property="og:type" content="website" />
+                <meta property="og:image" content="https://escalainmobiliaria.com.co/og-image.jpg" />
+            </Helmet>
             <main ref={mainRef} className="flex-1 relative z-10 w-full md:mb-0">
                 <div className="page-section"><Hero /></div>
                 <div className="page-section"><PropertyGrid /></div>

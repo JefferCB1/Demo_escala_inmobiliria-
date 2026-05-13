@@ -72,20 +72,43 @@ const PropertyDetail = () => {
     name: titulo,
     description: property.descripcion,
     url: `https://escalainmobiliaria.com.co/propiedad/${property.id}`,
-    image: property.imagenes?.[0],
+    image: property.imagenes?.length ? property.imagenes : property.imagen,
     numberOfRooms: property.habitaciones,
+    numberOfBathroomsTotal: property.banos,
+    numberOfBedrooms: property.habitaciones,
     floorSize: { '@type': 'QuantitativeValue', value: property.area, unitCode: 'MTK' },
     address: {
       '@type': 'PostalAddress',
-      addressLocality: property.ubicacion,
+      streetAddress: property.direccion || undefined,
+      addressLocality: property.ciudad || property.ubicacion,
       addressRegion: property.departamento,
       addressCountry: 'CO',
     },
+    ...(property.coordenadas ? {
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: property.coordenadas.lat,
+        longitude: property.coordenadas.lng,
+      },
+    } : {}),
+    ...(property.caracteristicas?.length ? {
+      amenityFeature: property.caracteristicas.map(c => ({
+        '@type': 'LocationFeatureSpecification',
+        name: c,
+      })),
+    } : {}),
     offers: {
       '@type': 'Offer',
       price: property.precio,
       priceCurrency: 'COP',
       availability: 'https://schema.org/InStock',
+      url: `https://escalainmobiliaria.com.co/propiedad/${property.id}`,
+      seller: {
+        '@type': 'RealEstateAgent',
+        name: 'Escala Inmobiliaria',
+        telephone: '+573009122101',
+        url: 'https://escalainmobiliaria.com.co',
+      },
     },
   };
 
