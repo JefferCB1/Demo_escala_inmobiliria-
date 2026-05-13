@@ -31,7 +31,9 @@ export default async function handler(req, res) {
     ]);
     const destacados = [...medellin, ...sabaneta];
 
-    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+    // Cache CDN 1h + revalida en background durante 24h (SWR)
+    // Las destacadas cambian poco; el usuario nunca espera la latencia de SIMI tras el primer hit.
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
     res.status(200).json({ destacados });
   } catch (err) {
     // No exponer detalles internos al cliente (A09 - Logging & Alerting)
