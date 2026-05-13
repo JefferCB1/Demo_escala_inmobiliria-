@@ -1,3 +1,5 @@
+import { enforceRateLimit } from '../_lib/rateLimit.js';
+
 const BASE_URL = 'https://simi-api.com';
 
 // Solo permite IDs con formato válido de SIMI: números, letras y guion (A05 - Injection)
@@ -22,6 +24,9 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
+
+  // 60 req/min por IP — abrir una ficha es uso normal, mayor volumen es scraping.
+  if (enforceRateLimit(req, res, { limit: 60, windowMs: 60_000, key: 'propiedad' })) return;
 
   const { id } = req.query;
 

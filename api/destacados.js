@@ -1,3 +1,5 @@
+import { enforceRateLimit } from './_lib/rateLimit.js';
+
 const BASE_URL = 'https://simi-api.com';
 
 function getAuthHeader(token) {
@@ -20,6 +22,9 @@ export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método no permitido' });
   }
+
+  // 60 req/min por IP
+  if (enforceRateLimit(req, res, { limit: 60, windowMs: 60_000, key: 'destacados' })) return;
 
   const tokenMedellin = process.env.SIMI_TOKEN_MEDELLIN;
   const tokenSabaneta = process.env.SIMI_TOKEN_SABANETA;
