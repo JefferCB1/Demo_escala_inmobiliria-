@@ -1,4 +1,4 @@
-const BASE_URL = 'http://simi-api.com';
+const BASE_URL = 'https://simi-api.com';
 
 // Valores permitidos para validación de inputs (A05 - Injection prevention)
 const ALLOWED_SEDES = ['medellin', 'sabaneta'];

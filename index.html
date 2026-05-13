@@ -71,17 +71,39 @@
         "url": "https://escalainmobiliaria.com.co",
         "telephone": "+573009122101",
         "email": "info@escalainmobiliaria.com.co",
+        "image": "https://escalainmobiliaria.com.co/Logo_inmboliaria.png",
+        "logo": "https://escalainmobiliaria.com.co/Logo_inmboliaria.png",
         "address": {
             "@type": "PostalAddress",
             "streetAddress": "Calle 35 No 81 09 interior 201",
             "addressLocality": "Medellín",
             "addressRegion": "Antioquia",
+            "postalCode": "050034",
             "addressCountry": "CO"
         },
-        "areaServed": ["Medellín", "Sabaneta", "Laureles", "Envigado"],
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": "6.2442",
+            "longitude": "-75.5812"
+        },
+        "areaServed": [
+            { "@type": "City", "name": "Medellín" },
+            { "@type": "City", "name": "Sabaneta" },
+            { "@type": "Place", "name": "Laureles" },
+            { "@type": "City", "name": "Envigado" }
+        ],
         "priceRange": "$$$",
-        "openingHours": "Mo-Su 00:00-24:00",
-        "image": "/Logo_inmboliaria.png"
+        "openingHoursSpecification": [{
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+            "opens": "00:00",
+            "closes": "23:59"
+        }],
+        "sameAs": [
+            "https://www.facebook.com/escalainmobiliaria",
+            "https://www.instagram.com/escalainmobiliaria",
+            "https://wa.me/573009122101"
+        ]
     }
     </script>
 </head>
