@@ -59,6 +59,13 @@ const findIdByName = (catalogo, name) => {
 
 const PER_PAGE = 12; // Por sede. Sin filtro de sede → ~24 ítems por página.
 
+// Mapeo de orden → params SIMI (campo + order)
+const SORT_OPTIONS = [
+  { value: 'recomendado', label: 'Recomendado', campo: 'fecha', order: 'desc' },
+  { value: 'barato', label: 'Más barato', campo: 'precio', order: 'asc' },
+  { value: 'caro', label: 'Más caro', campo: 'precio', order: 'desc' },
+];
+
 const PropertiesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -67,6 +74,7 @@ const PropertiesPage = () => {
   const [filterOperacionId, setFilterOperacionId] = useState('');
   const [filterUbicacionId, setFilterUbicacionId] = useState('');
   const [filterHabitaciones, setFilterHabitaciones] = useState('todos');
+  const [sortBy, setSortBy] = useState('recomendado');
   const [propiedades, setPropiedades] = useState([]);
   const [catalogos, setCatalogos] = useState({ ciudades: [], tipos: [], gestiones: [] });
   const [loading, setLoading] = useState(true);
@@ -104,12 +112,15 @@ const PropertiesPage = () => {
       setLoadingMore(true);
     }
     try {
+      const sortCfg = SORT_OPTIONS.find(o => o.value === sortBy) || SORT_OPTIONS[0];
       const { propiedades: data } = await getPropiedades({
         limite: String(PER_PAGE),
         pagina: String(pageToLoad),
         ciudad: filterUbicacionId || undefined,
         tipoInm: filterTipoId || undefined,
         tipOper: filterOperacionId || undefined,
+        campo: sortCfg.campo,
+        order: sortCfg.order,
         // habitaciones se mantiene client-side por el caso "3+" (SIMI usa 5+ no 3+)
       });
       setPropiedades(prev => (pageToLoad === 0 ? data : [...prev, ...data]));
@@ -123,7 +134,7 @@ const PropertiesPage = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [filterUbicacionId, filterTipoId, filterOperacionId]);
+  }, [filterUbicacionId, filterTipoId, filterOperacionId, sortBy]);
 
   // Al cambiar cualquier filtro server-side, reseteamos y pedimos desde la página 0.
   useEffect(() => {
@@ -301,9 +312,29 @@ const PropertiesPage = () => {
             </div>
           </div>
 
-          <p className="text-xs text-gray-400 mt-3 self-start font-medium">
-            {loading ? 'Buscando propiedades...' : `${propiedadesFiltradas.length} ${propiedadesFiltradas.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
-          </p>
+          <div className="w-full mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p className="text-xs text-gray-400 font-medium order-2 sm:order-1">
+              {loading ? 'Buscando propiedades...' : `${propiedadesFiltradas.length} ${propiedadesFiltradas.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
+            </p>
+
+            {/* Selector de orden — pills sutiles */}
+            <div className="order-1 sm:order-2 flex items-center gap-1.5 bg-gray-100 rounded-full p-1 self-start sm:self-auto">
+              {SORT_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSortBy(opt.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    sortBy === opt.value
+                      ? 'bg-white text-escala-dark shadow-sm'
+                      : 'text-gray-500 hover:text-escala-dark'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
