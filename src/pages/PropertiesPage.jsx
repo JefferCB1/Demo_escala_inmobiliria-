@@ -57,6 +57,8 @@ const findIdByName = (catalogo, name) => {
   return partial ? String(partial.id) : '';
 };
 
+const PER_PAGE = 12; // Por sede. Sin filtro de sede → ~24 ítems por página.
+
 const PropertiesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -68,6 +70,9 @@ const PropertiesPage = () => {
   const [propiedades, setPropiedades] = useState([]);
   const [catalogos, setCatalogos] = useState({ ciudades: [], tipos: [], gestiones: [] });
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [pagina, setPagina] = useState(0);
   const [error, setError] = useState(null);
 
   // Carga catálogos una sola vez (cache CDN 24h)
@@ -90,32 +95,48 @@ const PropertiesPage = () => {
     if (habitaciones) setFilterHabitaciones(habitaciones);
   }, [searchParams, catalogos]);
 
-  // Carga propiedades. Refetch automático cuando cambian los filtros server-side.
-  const cargarPropiedades = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // Carga una página. pageToLoad=0 reinicia la lista; >0 hace append.
+  const cargarPropiedades = useCallback(async (pageToLoad = 0) => {
+    if (pageToLoad === 0) {
+      setLoading(true);
+      setError(null);
+    } else {
+      setLoadingMore(true);
+    }
     try {
-      // 200 por sede (400 totales). Con filtros server-side, la mayoría de
-      // combinaciones caben holgadas. Si en el futuro queremos "Ver más",
-      // implementar paginación con state `pagina`.
       const { propiedades: data } = await getPropiedades({
-        limite: '200',
+        limite: String(PER_PAGE),
+        pagina: String(pageToLoad),
         ciudad: filterUbicacionId || undefined,
         tipoInm: filterTipoId || undefined,
         tipOper: filterOperacionId || undefined,
         // habitaciones se mantiene client-side por el caso "3+" (SIMI usa 5+ no 3+)
       });
-      setPropiedades(data);
+      setPropiedades(prev => (pageToLoad === 0 ? data : [...prev, ...data]));
+      // Cuando una página viene vacía, asumimos que no hay más resultados.
+      setHasMore(data.length > 0);
     } catch {
-      setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
+      if (pageToLoad === 0) {
+        setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, [filterUbicacionId, filterTipoId, filterOperacionId]);
 
+  // Al cambiar cualquier filtro server-side, reseteamos y pedimos desde la página 0.
   useEffect(() => {
-    cargarPropiedades();
+    setPagina(0);
+    setHasMore(true);
+    cargarPropiedades(0);
   }, [cargarPropiedades]);
+
+  const cargarMas = () => {
+    const next = pagina + 1;
+    setPagina(next);
+    cargarPropiedades(next);
+  };
 
   // Filtro client-side solo para habitaciones (SIMI no soporta "3+" directamente)
   const propiedadesFiltradas = useMemo(() => {
@@ -482,6 +503,43 @@ const PropertiesPage = () => {
           </div>
         )
         }
+
+        {/* Botón "Ver más" — solo si hay resultados, no estamos cargando inicial y queda más */}
+        {!loading && !error && propiedadesFiltradas.length > 0 && hasMore && (
+          <div className="mt-12 flex flex-col items-center gap-3">
+            <button
+              onClick={cargarMas}
+              disabled={loadingMore}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-escala-dark border-2 border-gray-200 rounded-2xl font-bold hover:border-escala-accent hover:text-escala-accent hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+            >
+              {loadingMore ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-gray-300 border-t-escala-accent rounded-full animate-spin" aria-hidden="true" />
+                  Cargando…
+                </>
+              ) : (
+                <>
+                  Ver más propiedades
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </>
+              )}
+            </button>
+            <p className="text-xs text-gray-400 font-medium">
+              Mostrando {propiedadesFiltradas.length} {propiedadesFiltradas.length === 1 ? 'propiedad' : 'propiedades'}
+            </p>
+          </div>
+        )}
+
+        {/* Mensaje cuando se llegó al final del catálogo */}
+        {!loading && !error && propiedadesFiltradas.length > 0 && !hasMore && (
+          <div className="mt-12 text-center">
+            <p className="text-sm text-gray-400 font-medium">
+              Has visto todas las propiedades disponibles ({propiedadesFiltradas.length})
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
