@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getPropiedades } from '../services/simiApi';
+import { getPropiedades, getCatalogos } from '../services/simiApi';
 import { formatPrice } from '../utils/formatters';
+
+// Normaliza opciones: acepta strings ['1','2'] o {value,label} [{value:'1',label:'1 habitación'}]
+const normalizeOpts = opts => opts.map(o => (typeof o === 'string' ? { value: o, label: o } : o));
 
 const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
   const [open, setOpen] = useState(false);
+  const opts = normalizeOpts(options);
+  const selected = opts.find(o => String(o.value) === String(value));
   return (
     <div className="relative flex-1 min-w-0">
       <button
@@ -17,22 +22,22 @@ const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
         <span className="text-gray-400 flex-shrink-0">{icon}</span>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
-          <p className="text-sm font-semibold text-escala-dark truncate">{value || allLabel}</p>
+          <p className="text-sm font-semibold text-escala-dark truncate">{selected ? selected.label : allLabel}</p>
         </div>
         <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200]">
+        <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200] max-h-80 overflow-y-auto">
           <button type="button" onMouseDown={() => { onChange(''); setOpen(false); }}
             className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${!value ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
             {allLabel}
           </button>
-          {options.map(opt => (
-            <button key={opt} type="button" onMouseDown={() => { onChange(opt); setOpen(false); }}
-              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${value === opt ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
-              {opt}
+          {opts.map(opt => (
+            <button key={opt.value} type="button" onMouseDown={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition-colors ${String(value) === String(opt.value) ? 'text-escala-accent font-semibold' : 'text-gray-600'}`}>
+              {opt.label}
             </button>
           ))}
         </div>
@@ -41,71 +46,132 @@ const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
   );
 };
 
+// Busca un item del catálogo por nombre (matching parcial, case-insensitive).
+const findIdByName = (catalogo, name) => {
+  if (!name || !catalogo?.length) return '';
+  const target = name.toLowerCase().trim();
+  // Match exacto primero, luego parcial
+  const exact = catalogo.find(c => c.nombre.toLowerCase() === target);
+  if (exact) return String(exact.id);
+  const partial = catalogo.find(c => c.nombre.toLowerCase().includes(target));
+  return partial ? String(partial.id) : '';
+};
+
+const PER_PAGE = 12; // Por sede. Sin filtro de sede → ~24 ítems por página.
+
+// Mapeo de orden → params SIMI (campo + order)
+const SORT_OPTIONS = [
+  { value: 'recomendado', label: 'Recomendado', campo: 'fecha', order: 'desc' },
+  { value: 'barato', label: 'Más barato', campo: 'precio', order: 'asc' },
+  { value: 'caro', label: 'Más caro', campo: 'precio', order: 'desc' },
+];
+
 const PropertiesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [filterTipo, setFilterTipo] = useState('todos');
-  const [filterOperacion, setFilterOperacion] = useState('todos');
-  const [filterUbicacion, setFilterUbicacion] = useState('todos');
+  // Filtros: ahora almacenamos IDs (string) de SIMI; '' significa "todos"
+  const [filterTipoId, setFilterTipoId] = useState('');
+  const [filterOperacionId, setFilterOperacionId] = useState('');
+  const [filterUbicacionId, setFilterUbicacionId] = useState('');
   const [filterHabitaciones, setFilterHabitaciones] = useState('todos');
+  const [sortBy, setSortBy] = useState('recomendado');
   const [propiedades, setPropiedades] = useState([]);
+  const [catalogos, setCatalogos] = useState({ ciudades: [], tipos: [], gestiones: [] });
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [pagina, setPagina] = useState(0);
   const [error, setError] = useState(null);
 
-  // Apply URL params from SmartSearch
+  // Carga catálogos una sola vez (cache CDN 24h)
   useEffect(() => {
+    getCatalogos()
+      .then(setCatalogos)
+      .catch(() => {}); // Si falla, los dropdowns quedan vacíos pero el listado funciona.
+  }, []);
+
+  // Mapea params de URL (nombres) a IDs cuando los catálogos estén disponibles
+  useEffect(() => {
+    if (!catalogos.tipos.length && !catalogos.ciudades.length && !catalogos.gestiones.length) return;
     const operacion = searchParams.get('operacion');
     const tipo = searchParams.get('tipo');
     const ciudad = searchParams.get('ciudad');
     const habitaciones = searchParams.get('habitaciones');
-    if (operacion) setFilterOperacion(operacion);
-    if (tipo) setFilterTipo(tipo);
-    if (ciudad) setFilterUbicacion(ciudad);
+    if (operacion) setFilterOperacionId(findIdByName(catalogos.gestiones, operacion));
+    if (tipo) setFilterTipoId(findIdByName(catalogos.tipos, tipo));
+    if (ciudad) setFilterUbicacionId(findIdByName(catalogos.ciudades, ciudad));
     if (habitaciones) setFilterHabitaciones(habitaciones);
-  }, [searchParams]);
+  }, [searchParams, catalogos]);
 
-  const cargarPropiedades = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // Carga una página. pageToLoad=0 reinicia la lista; >0 hace append.
+  const cargarPropiedades = useCallback(async (pageToLoad = 0) => {
+    if (pageToLoad === 0) {
+      setLoading(true);
+      setError(null);
+    } else {
+      setLoadingMore(true);
+    }
     try {
-      const { propiedades: data } = await getPropiedades({ limite: '50' });
-      setPropiedades(data);
+      const sortCfg = SORT_OPTIONS.find(o => o.value === sortBy) || SORT_OPTIONS[0];
+      const { propiedades: data } = await getPropiedades({
+        limite: String(PER_PAGE),
+        pagina: String(pageToLoad),
+        ciudad: filterUbicacionId || undefined,
+        tipoInm: filterTipoId || undefined,
+        tipOper: filterOperacionId || undefined,
+        campo: sortCfg.campo,
+        order: sortCfg.order,
+        // habitaciones se mantiene client-side por el caso "3+" (SIMI usa 5+ no 3+)
+      });
+      setPropiedades(prev => (pageToLoad === 0 ? data : [...prev, ...data]));
+      // Cuando una página viene vacía, asumimos que no hay más resultados.
+      setHasMore(data.length > 0);
     } catch {
-      setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
+      if (pageToLoad === 0) {
+        setError('No se pudieron cargar las propiedades. Intenta de nuevo.');
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, []);
+  }, [filterUbicacionId, filterTipoId, filterOperacionId, sortBy]);
 
+  // Al cambiar cualquier filtro server-side, reseteamos y pedimos desde la página 0.
   useEffect(() => {
-    cargarPropiedades();
+    setPagina(0);
+    setHasMore(true);
+    cargarPropiedades(0);
   }, [cargarPropiedades]);
 
-  // Filtrado client-side (SIMI usa IDs numéricos, filtramos sobre los datos mapeados)
+  const cargarMas = () => {
+    const next = pagina + 1;
+    setPagina(next);
+    cargarPropiedades(next);
+  };
+
+  // Filtro client-side solo para habitaciones (SIMI no soporta "3+" directamente)
   const propiedadesFiltradas = useMemo(() => {
+    if (filterHabitaciones === 'todos') return propiedades;
     return propiedades.filter(p => {
-      if (filterOperacion !== 'todos') {
-        const op = (p.operacion || '').toLowerCase();
-        if (!op.includes(filterOperacion.toLowerCase())) return false;
-      }
-      if (filterTipo !== 'todos') {
-        if ((p.tipo || '').toLowerCase() !== filterTipo.toLowerCase()) return false;
-      }
-      if (filterUbicacion !== 'todos') {
-        const ciudad = (p.ciudad || p.ubicacion || '').toLowerCase();
-        if (!ciudad.includes(filterUbicacion.toLowerCase())) return false;
-      }
-      if (filterHabitaciones !== 'todos') {
-        const habs = parseInt(p.habitaciones || 0);
-        if (filterHabitaciones === '3+') {
-          if (habs < 3) return false;
-        } else {
-          if (habs !== parseInt(filterHabitaciones)) return false;
-        }
-      }
-      return true;
+      const habs = parseInt(p.habitaciones || 0);
+      if (filterHabitaciones === '3+') return habs >= 3;
+      return habs === parseInt(filterHabitaciones);
     });
-  }, [propiedades, filterOperacion, filterTipo, filterUbicacion, filterHabitaciones]);
+  }, [propiedades, filterHabitaciones]);
+
+  // Opciones para los dropdowns (orden estable, filtrado de vacíos)
+  const tipoOptions = useMemo(
+    () => catalogos.tipos.map(t => ({ value: String(t.id), label: t.nombre })),
+    [catalogos.tipos]
+  );
+  const ciudadOptions = useMemo(
+    () => catalogos.ciudades.map(c => ({ value: String(c.id), label: c.nombre })),
+    [catalogos.ciudades]
+  );
+
+  // ID de "Arriendo" y "Venta" derivados del catálogo gestion
+  const idArriendo = findIdByName(catalogos.gestiones, 'arriendo');
+  const idVenta = findIdByName(catalogos.gestiones, 'venta');
 
   const schemaData = {
     '@context': 'https://schema.org',
@@ -174,18 +240,23 @@ const PropertiesPage = () => {
                 left: '4px',
                 background: 'linear-gradient(135deg, #FF6B00, #e66000)',
                 boxShadow: '0 4px 14px rgba(255,107,0,0.35)',
-                transform: filterOperacion === 'venta' ? 'translateX(100%)' : 'translateX(0)',
+                transform: filterOperacionId === idVenta && idVenta ? 'translateX(100%)' : 'translateX(0)',
                 transition: 'transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1)',
+                opacity: filterOperacionId ? 1 : 0,
               }}
             />
-            {[{ key: 'arriendo', label: 'Arriendo' }, { key: 'venta', label: 'Venta' }].map(op => (
+            {[
+              { id: idArriendo, label: 'Arriendo' },
+              { id: idVenta, label: 'Venta' },
+            ].map(op => (
               <button
-                key={op.key}
+                key={op.label}
                 type="button"
-                onClick={() => setFilterOperacion(op.key)}
-                className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold"
+                onClick={() => setFilterOperacionId(filterOperacionId === op.id ? '' : op.id)}
+                disabled={!op.id}
+                className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold disabled:opacity-40"
                 style={{
-                  color: filterOperacion === op.key ? '#fff' : '#6b7280',
+                  color: filterOperacionId === op.id && op.id ? '#fff' : '#6b7280',
                   transition: 'color 0.25s ease',
                 }}
               >
@@ -200,18 +271,18 @@ const PropertiesPage = () => {
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
                 label="Tipo de inmueble"
-                value={filterTipo === 'todos' ? '' : filterTipo}
-                onChange={(v) => setFilterTipo(v || 'todos')}
-                options={['Apartamento', 'Apartaestudio', 'Casa', 'Casa Campestre', 'Oficina']}
+                value={filterTipoId}
+                onChange={setFilterTipoId}
+                options={tipoOptions}
                 allLabel="Todos los tipos"
               />
               <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
                 label="Ciudad / Municipio"
-                value={filterUbicacion === 'todos' ? '' : filterUbicacion}
-                onChange={(v) => setFilterUbicacion(v || 'todos')}
-                options={['Medellín', 'Sabaneta', 'Itaguí', 'Envigado', 'La Estrella', 'Caldas']}
+                value={filterUbicacionId}
+                onChange={setFilterUbicacionId}
+                options={ciudadOptions}
                 allLabel="Todas las ciudades"
               />
               <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
@@ -224,9 +295,14 @@ const PropertiesPage = () => {
                 allLabel="Cualquier cantidad"
               />
               {/* Botón limpiar — solo si hay filtros activos */}
-              {(filterTipo !== 'todos' || filterUbicacion !== 'todos' || filterHabitaciones !== 'todos') && (
+              {(filterTipoId || filterUbicacionId || filterOperacionId || filterHabitaciones !== 'todos') && (
                 <button
-                  onClick={() => { setFilterTipo('todos'); setFilterUbicacion('todos'); setFilterHabitaciones('todos'); }}
+                  onClick={() => {
+                    setFilterTipoId('');
+                    setFilterUbicacionId('');
+                    setFilterOperacionId('');
+                    setFilterHabitaciones('todos');
+                  }}
                   className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-4 rounded-2xl text-sm font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -236,33 +312,127 @@ const PropertiesPage = () => {
             </div>
           </div>
 
-          <p className="text-xs text-gray-400 mt-3 self-start font-medium">
-            {loading ? 'Buscando propiedades...' : `${propiedadesFiltradas.length} ${propiedadesFiltradas.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
-          </p>
+          <div className="w-full mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <p className="text-xs text-gray-400 font-medium order-2 sm:order-1">
+              {loading ? 'Buscando propiedades...' : `${propiedadesFiltradas.length} ${propiedadesFiltradas.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
+            </p>
+
+            {/* Selector de orden — pills sutiles */}
+            <div className="order-1 sm:order-2 flex items-center gap-1.5 bg-gray-100 rounded-full p-1 self-start sm:self-auto">
+              {SORT_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setSortBy(opt.value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    sortBy === opt.value
+                      ? 'bg-white text-escala-dark shadow-sm'
+                      : 'text-gray-500 hover:text-escala-dark'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Properties Grid */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 animate-pulse">
-                <div className="h-48 bg-gray-200" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-3 bg-gray-200 rounded w-1/2" />
-                  <div className="h-10 bg-gray-200 rounded-xl" />
-                </div>
+          <>
+            {/* Indicador animado superior */}
+            <div className="flex items-center justify-center gap-3 mb-8" role="status" aria-live="polite">
+              <div className="relative w-6 h-6">
+                <div className="absolute inset-0 rounded-full border-2 border-orange-200" />
+                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-escala-accent animate-spin" />
               </div>
-            ))}
-          </div>
+              <p className="text-sm font-semibold text-gray-600">
+                Buscando las mejores propiedades
+                <span className="inline-block w-4 text-left">
+                  <span className="animate-[pulse_1.4s_ease-in-out_infinite]">.</span>
+                  <span className="animate-[pulse_1.4s_ease-in-out_0.2s_infinite]">.</span>
+                  <span className="animate-[pulse_1.4s_ease-in-out_0.4s_infinite]">.</span>
+                </span>
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="relative bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 animate-[slideUp_0.6s_ease-out_both]"
+                  style={{ animationDelay: `${i * 80}ms` }}
+                  aria-hidden="true"
+                >
+                  {/* Imagen + badges */}
+                  <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-100 overflow-hidden">
+                    <div className="absolute top-3 left-3 h-6 w-20 rounded-full bg-gray-300/70" />
+                    <div className="absolute top-3 right-3 h-6 w-16 rounded-full bg-gray-300/70" />
+                    <div className="absolute bottom-3 left-3 h-5 w-24 rounded bg-gray-300/70" />
+                  </div>
+
+                  {/* Contenido */}
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="h-5 w-1/2 rounded bg-gray-200" />
+                      <div className="h-5 w-20 rounded bg-orange-100" />
+                    </div>
+                    <div className="h-3 w-3/4 rounded bg-gray-200" />
+                    <div className="flex items-center gap-3 pt-1">
+                      <div className="h-3 w-10 rounded bg-gray-200" />
+                      <div className="h-3 w-12 rounded bg-gray-200" />
+                      <div className="h-3 w-12 rounded bg-gray-200" />
+                    </div>
+                    <div className="h-10 rounded-xl bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100" />
+                  </div>
+
+                  {/* Overlay shimmer */}
+                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : error ? (
-          <div className="text-center py-16">
-            <p className="text-red-500 font-medium mb-4">{error}</p>
-            <button onClick={cargarPropiedades} className="px-6 py-2 bg-escala-accent text-white rounded-xl font-bold hover:bg-orange-600 transition-colors">
-              Reintentar
-            </button>
+          <div className="max-w-md mx-auto text-center py-16 px-4 animate-[slideUp_0.5s_ease-out_both]">
+            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+
+            <h3 className="text-xl font-heading font-bold text-escala-dark mb-2">
+              No se encontraron propiedades
+            </h3>
+            <p className="text-gray-500 text-sm mb-8">
+              Intenta de nuevo o contacta a un asesor.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={cargarPropiedades}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-escala-accent text-white rounded-xl font-bold hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Reintentar
+              </button>
+              <a
+                href="https://wa.me/573009122101?text=Hola,%20quisiera%20que%20me%20ayuden%20a%20encontrar%20una%20propiedad"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-escala-dark border-2 border-gray-200 rounded-xl font-bold hover:border-escala-accent hover:text-escala-accent transition-all"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Asesor
+              </a>
+            </div>
           </div>
         ) : propiedadesFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -364,6 +534,43 @@ const PropertiesPage = () => {
           </div>
         )
         }
+
+        {/* Botón "Ver más" — solo si hay resultados, no estamos cargando inicial y queda más */}
+        {!loading && !error && propiedadesFiltradas.length > 0 && hasMore && (
+          <div className="mt-12 flex flex-col items-center gap-3">
+            <button
+              onClick={cargarMas}
+              disabled={loadingMore}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-escala-dark border-2 border-gray-200 rounded-2xl font-bold hover:border-escala-accent hover:text-escala-accent hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+            >
+              {loadingMore ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-gray-300 border-t-escala-accent rounded-full animate-spin" aria-hidden="true" />
+                  Cargando…
+                </>
+              ) : (
+                <>
+                  Ver más propiedades
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                </>
+              )}
+            </button>
+            <p className="text-xs text-gray-400 font-medium">
+              Mostrando {propiedadesFiltradas.length} {propiedadesFiltradas.length === 1 ? 'propiedad' : 'propiedades'}
+            </p>
+          </div>
+        )}
+
+        {/* Mensaje cuando se llegó al final del catálogo */}
+        {!loading && !error && propiedadesFiltradas.length > 0 && !hasMore && (
+          <div className="mt-12 text-center">
+            <p className="text-sm text-gray-400 font-medium">
+              Has visto todas las propiedades disponibles ({propiedadesFiltradas.length})
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -73,9 +73,15 @@ async function apiFetch(url) {
 
 export async function getPropiedades(filtros = {}) {
   const params = new URLSearchParams();
-  if (filtros.operacion) params.set('operacion', filtros.operacion);
-  if (filtros.tipo) params.set('tipo', filtros.tipo);
+  // Filtros server-side por ID (SIMI hace el filtrado real)
   if (filtros.ciudad) params.set('ciudad', filtros.ciudad);
+  if (filtros.tipoInm) params.set('tipoInm', filtros.tipoInm);
+  if (filtros.tipOper) params.set('tipOper', filtros.tipOper);
+  if (filtros.departamento) params.set('departamento', filtros.departamento);
+  // Ordenamiento server-side
+  if (filtros.campo) params.set('campo', filtros.campo);
+  if (filtros.order) params.set('order', filtros.order);
+  // Paginación + filtros heredados
   if (filtros.habitaciones) params.set('habitaciones', filtros.habitaciones);
   if (filtros.limite) params.set('limite', filtros.limite);
   if (filtros.pagina) params.set('pagina', filtros.pagina);
@@ -86,6 +92,10 @@ export async function getPropiedades(filtros = {}) {
     propiedades: (data.propiedades || []).map(mapPropiedad),
     total: data.total || 0,
   };
+}
+
+export async function getCatalogos() {
+  return apiFetch('/api/catalogos');
 }
 
 export async function getPropiedad(id) {

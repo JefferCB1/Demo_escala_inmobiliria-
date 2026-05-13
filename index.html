@@ -38,6 +38,9 @@
     <link rel="dns-prefetch" href="https://assets.mixkit.co">
     <link rel="dns-prefetch" href="https://wa.me">
 
+    <!-- Preload del endpoint de destacados — arranca el fetch en paralelo con el JS -->
+    <link rel="preload" as="fetch" href="/api/destacados" crossorigin="anonymous">
+
     <!-- Fonts no bloqueantes (evita render-blocking) -->
     <link rel="preload" as="style"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap"
