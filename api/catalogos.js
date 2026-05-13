@@ -75,6 +75,45 @@ function mapCatalogo(raw) {
     .filter(x => x.id !== null && x.nombre);
 }
 
+// Fusiona dos catálogos eliminando duplicados por ID.
+function mergeUniq(a = [], b = []) {
+  const seen = new Set();
+  const out = [];
+  for (const item of [...a, ...b]) {
+    if (!item?.id || seen.has(String(item.id))) continue;
+    seen.add(String(item.id));
+    out.push(item);
+  }
+  return out.sort((x, y) => x.nombre.localeCompare(y.nombre, 'es'));
+}
+
+// Carga catálogos de un solo token (departamentos, tipos, gestiones, ciudades de Antioquia).
+async function loadCatalogosForToken(token, idDepDefault) {
+  const [depRaw, tipRaw, gesRaw] = await Promise.all([
+    fetchSimi(token, '/ApiSimiweb/response/v2/departamento').catch(() => null),
+    fetchSimi(token, '/ApiSimiweb/response/v2/tipoInmuebles/unique/1').catch(() => null),
+    fetchSimi(token, '/ApiSimiweb/response/gestion').catch(() => null),
+  ]);
+  const departamentos = mapCatalogo(depRaw);
+  const antioquia = departamentos.find(d => /antioquia/i.test(d.nombre));
+  const idDep = antioquia?.id || idDepDefault;
+
+  const ciuRaw = await fetchSimi(token, `/ApiSimiweb/response/v2/ciudad/idDepartamento/${idDep}`)
+    .catch(() => null);
+
+  return {
+    departamentos,
+    ciudades: mapCatalogo(ciuRaw),
+    tipos: mapCatalogo(tipRaw),
+    gestiones: mapCatalogo(gesRaw),
+    _rawDep: depRaw,
+    _rawCiu: ciuRaw,
+    _rawTip: tipRaw,
+    _rawGes: gesRaw,
+    _idDep: idDep,
+  };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Método no permitido' });
@@ -84,66 +123,57 @@ export default async function handler(req, res) {
   // para llamar más seguido.
   if (enforceRateLimit(req, res, { limit: 30, windowMs: 60_000, key: 'catalogos' })) return;
 
-  const token = process.env.SIMI_TOKEN_MEDELLIN;
-  if (!token) {
+  const tokenMedellin = process.env.SIMI_TOKEN_MEDELLIN;
+  const tokenSabaneta = process.env.SIMI_TOKEN_SABANETA;
+  if (!tokenMedellin && !tokenSabaneta) {
     return res.status(500).json({ error: 'Configuración inválida' });
   }
 
-  // ID del departamento principal de Escala (verificado contra catálogo real).
   const ID_ANTIOQUIA_DEFAULT = 11008;
 
-  // Modo debug: devuelve respuesta cruda de SIMI para inspeccionar campos.
-  // Resuelve el ID de Antioquia dinámicamente antes de pedir ciudades.
-  if (req.query.debug === '1') {
-    try {
-      const [depRaw, tipRaw, gesRaw] = await Promise.all([
-        fetchSimi(token, '/ApiSimiweb/response/v2/departamento').catch(e => ({ error: e.message })),
-        fetchSimi(token, '/ApiSimiweb/response/v2/tipoInmuebles/unique/1').catch(e => ({ error: e.message })),
-        fetchSimi(token, '/ApiSimiweb/response/gestion').catch(e => ({ error: e.message })),
-      ]);
-      const depArr = mapCatalogo(depRaw);
-      const antioquia = depArr.find(d => /antioquia/i.test(d.nombre));
-      const idDep = antioquia?.id || ID_ANTIOQUIA_DEFAULT;
-      const ciuRaw = await fetchSimi(token, `/ApiSimiweb/response/v2/ciudad/idDepartamento/${idDep}`)
-        .catch(e => ({ error: e.message }));
-
-      return res.status(200).json({
-        _debug: true,
-        _note: 'Respuestas crudas de SIMI. Inspecciona los nombres de campo y compártelos.',
-        _idDepartamentoUsado: idDep,
-        departamentos: depRaw,
-        ciudadesAntioquia: ciuRaw,
-        tipos: tipRaw,
-        gestiones: gesRaw,
-      });
-    } catch (err) {
-      return res.status(500).json({ error: 'Debug falló', message: err.message });
-    }
-  }
-
   try {
-    const [depRaw, tipRaw, gesRaw] = await Promise.all([
-      fetchSimi(token, '/ApiSimiweb/response/v2/departamento'),
-      fetchSimi(token, '/ApiSimiweb/response/v2/tipoInmuebles/unique/1'),
-      fetchSimi(token, '/ApiSimiweb/response/gestion'),
+    // Carga ambas sedes en paralelo y fusiona resultados — así las ciudades
+    // exclusivas de Sabaneta (ej. la propia Sabaneta) aparecen en el filtro.
+    const [med, sab] = await Promise.all([
+      tokenMedellin
+        ? loadCatalogosForToken(tokenMedellin, ID_ANTIOQUIA_DEFAULT)
+        : Promise.resolve({}),
+      tokenSabaneta
+        ? loadCatalogosForToken(tokenSabaneta, ID_ANTIOQUIA_DEFAULT)
+        : Promise.resolve({}),
     ]);
 
-    const departamentos = mapCatalogo(depRaw);
+    // Modo debug: devuelve respuestas crudas de AMBAS sedes para inspección.
+    if (req.query.debug === '1') {
+      return res.status(200).json({
+        _debug: true,
+        _note: 'Respuestas crudas de SIMI por sede. Las ciudades únicas aparecen en /api/catalogos sin debug.',
+        medellin: {
+          _idDepartamentoUsado: med._idDep,
+          departamentos: med._rawDep,
+          ciudades: med._rawCiu,
+          tipos: med._rawTip,
+          gestiones: med._rawGes,
+        },
+        sabaneta: {
+          _idDepartamentoUsado: sab._idDep,
+          departamentos: sab._rawDep,
+          ciudades: sab._rawCiu,
+          tipos: sab._rawTip,
+          gestiones: sab._rawGes,
+        },
+      });
+    }
 
-    // Si encontramos Antioquia en el catálogo, usamos su ID real. Si no, el default.
-    const antioquia = departamentos.find(d => /antioquia/i.test(d.nombre));
-    const idDep = antioquia?.id || ID_ANTIOQUIA_DEFAULT;
+    // Fusión: tomamos catálogos de cualquiera de las dos sedes, deduplicando por ID.
+    const departamentos = mergeUniq(med.departamentos, sab.departamentos);
+    const ciudades = mergeUniq(med.ciudades, sab.ciudades);
+    const tipos = mergeUniq(med.tipos, sab.tipos);
+    const gestiones = mergeUniq(med.gestiones, sab.gestiones);
 
-    const ciuRaw = await fetchSimi(token, `/ApiSimiweb/response/v2/ciudad/idDepartamento/${idDep}`);
-
-    // Cache CDN 24h, revalidación SWR 7 días — los catálogos cambian rara vez.
+    // Cache CDN 24h + SWR 7d
     res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');
-    res.status(200).json({
-      departamentos,
-      ciudades: mapCatalogo(ciuRaw),
-      tipos: mapCatalogo(tipRaw),
-      gestiones: mapCatalogo(gesRaw),
-    });
+    res.status(200).json({ departamentos, ciudades, tipos, gestiones });
   } catch (err) {
     console.error('[api/catalogos]', err.message);
     res.status(500).json({ error: 'No se pudieron cargar los catálogos' });
