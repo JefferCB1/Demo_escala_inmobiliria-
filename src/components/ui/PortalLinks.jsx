@@ -42,6 +42,7 @@ const portals = [
 
 const PortalLinks = () => {
   const [open, setOpen] = useState(null);
+  const [showVideo, setShowVideo] = useState(false);
 
   const toggle = (id) => setOpen(open === id ? null : id);
 
@@ -52,20 +53,35 @@ const PortalLinks = () => {
     return () => document.removeEventListener('click', close);
   }, [open]);
 
+  // Video background solo en desktop — en móvil bloqueaba el scroll.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlow = conn && (conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType));
+    if (isDesktop && !isSlow) {
+      const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1500));
+      idle(() => setShowVideo(true));
+    }
+  }, []);
+
   return (
     <section className="w-full pt-4 pb-16 relative z-10">
-      {/* Background similar to Hero */}
-      <div className="absolute inset-0 z-0 bg-slate-100">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover opacity-30"
-        >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-panorama-of-a-city-4328-large.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px]"></div>
+      {/* Background — video solo desktop */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-100 via-white to-slate-50">
+        {showVideo && (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="none"
+            aria-hidden="true"
+            className="w-full h-full object-cover opacity-30"
+          >
+            <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-panorama-of-a-city-4328-large.mp4" type="video/mp4" />
+          </video>
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-slate-50"></div>
       </div>
 
