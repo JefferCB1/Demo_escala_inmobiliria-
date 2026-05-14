@@ -95,8 +95,13 @@ const Hero = () => {
             conn.saveData === true ||
             ['slow-2g', '2g', '3g'].includes(conn.effectiveType)
         );
+
+        // Diferimos la carga del video hasta que el navegador esté idle.
+        // Así el primer paint y el TTI no esperan al MP4 de 1.5MB.
+        let cancelId;
         if (isDesktop && !isSlowOrSaveData) {
-            setShowVideo(true);
+            const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 800));
+            cancelId = idle(() => setShowVideo(true));
         }
 
         const ctx = gsap.context(() => {
@@ -109,7 +114,10 @@ const Hero = () => {
                 { y: 0, opacity: 1, scale: 1, duration: 1.2, delay: 0.4, ease: "power2.out" }
             );
         }, containerRef);
-        return () => ctx.revert();
+        return () => {
+            if (cancelId && window.cancelIdleCallback) window.cancelIdleCallback(cancelId);
+            ctx.revert();
+        };
     }, []);
 
     return (
