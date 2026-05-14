@@ -100,26 +100,33 @@ const Hero = () => {
         );
 
         // Diferimos la carga del video hasta que el navegador esté idle.
-        // Así el primer paint y el TTI no esperan al MP4 de 1.5MB.
         let cancelId;
         if (isDesktop && !isSlowOrSaveData) {
             const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 800));
             cancelId = idle(() => setShowVideo(true));
         }
 
-        const ctx = gsap.context(() => {
-            gsap.fromTo(".hero-text",
-                { y: 50, opacity: 0 },
-                { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power3.out" }
-            );
-            gsap.fromTo(".hero-search",
-                { y: 30, opacity: 0, scale: 0.95 },
-                { y: 0, opacity: 1, scale: 1, duration: 1.2, delay: 0.4, ease: "power2.out" }
-            );
-        }, containerRef);
+        // Animaciones GSAP de entrada SOLO en desktop. En móvil bloqueaban el
+        // main thread durante ~1.5s después del primer paint (translate + opacity
+        // sobre múltiples elementos con stagger), impidiendo que iOS Safari
+        // procesara el scroll del usuario hasta que terminaran.
+        let ctx;
+        if (isDesktop) {
+            ctx = gsap.context(() => {
+                gsap.fromTo(".hero-text",
+                    { y: 50, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power3.out" }
+                );
+                gsap.fromTo(".hero-search",
+                    { y: 30, opacity: 0, scale: 0.95 },
+                    { y: 0, opacity: 1, scale: 1, duration: 1.2, delay: 0.4, ease: "power2.out" }
+                );
+            }, containerRef);
+        }
+
         return () => {
             if (cancelId && window.cancelIdleCallback) window.cancelIdleCallback(cancelId);
-            ctx.revert();
+            if (ctx) ctx.revert();
         };
     }, []);
 
@@ -151,14 +158,20 @@ const Hero = () => {
                     <span className="flex flex-col items-center">
                         <span>Encuentra tu próximo</span>
                         <span className="text-escala-accent">
-                            <BlurText
-                                text="Hogar Ideal"
-                                delay={100}
-                                animateBy="words"
-                                direction="top"
-                                as="span"
-                                className="font-heading"
-                            />
+                            {/* Animación BlurText (filter:blur animado) solo en desktop —
+                                en móvil el filter+will-change saturaba la GPU bloqueando
+                                el scroll al cargar la página. */}
+                            <span className="md:hidden">Hogar Ideal</span>
+                            <span className="hidden md:inline">
+                                <BlurText
+                                    text="Hogar Ideal"
+                                    delay={100}
+                                    animateBy="words"
+                                    direction="top"
+                                    as="span"
+                                    className="font-heading"
+                                />
+                            </span>
                         </span>
                     </span>
                 </h1>
@@ -171,8 +184,11 @@ const Hero = () => {
                     <SmartSearch />
                 </div>
 
-                {/* Logo Strip - Aliados Estratégicos */}
-                <div className="w-full mt-16">
+                {/* Logo Strip - Aliados Estratégicos.
+                    Solo desktop: el RAF loop continuo + 9 imágenes en carrusel
+                    sumaba carga al main thread durante el initial load del
+                    mobile, contribuyendo al scroll bloqueado. */}
+                <div className="hidden md:block w-full mt-16">
                     <LogoStrip />
                 </div>
 
