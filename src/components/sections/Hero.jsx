@@ -8,20 +8,23 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
     const cardRef = useRef(null);
 
     useEffect(() => {
+        // Efecto tilt 3D solo en desktop — en móvil no hay mousemove y el
+        // compositing 3D persistente afecta el scroll.
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+        if (!isDesktop) return;
+
         const card = cardRef.current;
-        
+
         const handleMouseMove = (e) => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
-            
-            // Enhanced Deep Tilt
+
             const rotateX = ((y - centerY) / centerY) * -15;
             const rotateY = ((x - centerX) / centerX) * 15;
 
-            // Track cursor position via CSS Variables for gradient glow
             card.style.setProperty('--mouse-x', `${x}px`);
             card.style.setProperty('--mouse-y', `${y}px`);
 
@@ -63,18 +66,18 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
         : "bg-white border-gray-100";
 
     return (
-        <div ref={cardRef} className={`metric-card relative group overflow-hidden rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${baseClasses}`} style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}>
-            
-            {/* Glowing Spotlight Following Cursor */}
-            <div 
-                className="absolute inset-0 z-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 will-change-[background]"
+        <div ref={cardRef} className={`metric-card relative group overflow-hidden rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${baseClasses} md:[perspective:1200px] md:[transform-style:preserve-3d]`}>
+
+            {/* Glowing Spotlight Following Cursor — solo desktop (hidden md:block) */}
+            <div
+                className="hidden md:block absolute inset-0 z-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 style={{
                     background: `radial-gradient(circle 180px at var(--mouse-x, 50%) var(--mouse-y, 50%), ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(255, 102, 0, 0.08)'}, transparent)`
                 }}
             />
 
-            {/* Inner Content Popping Out (Parallax) */}
-            <div className="relative z-10 flex flex-col items-center" style={{ transform: 'translateZ(40px)' }}>
+            {/* Inner Content — sin parallax en móvil (translateZ no aporta sin perspective). */}
+            <div className="relative z-10 flex flex-col items-center md:[transform:translateZ(40px)]">
                 {children}
             </div>
         </div>
@@ -97,31 +100,38 @@ const Hero = () => {
         );
 
         // Diferimos la carga del video hasta que el navegador esté idle.
-        // Así el primer paint y el TTI no esperan al MP4 de 1.5MB.
         let cancelId;
         if (isDesktop && !isSlowOrSaveData) {
             const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 800));
             cancelId = idle(() => setShowVideo(true));
         }
 
-        const ctx = gsap.context(() => {
-            gsap.fromTo(".hero-text",
-                { y: 50, opacity: 0 },
-                { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power3.out" }
-            );
-            gsap.fromTo(".hero-search",
-                { y: 30, opacity: 0, scale: 0.95 },
-                { y: 0, opacity: 1, scale: 1, duration: 1.2, delay: 0.4, ease: "power2.out" }
-            );
-        }, containerRef);
+        // Animaciones GSAP de entrada SOLO en desktop. En móvil bloqueaban el
+        // main thread durante ~1.5s después del primer paint (translate + opacity
+        // sobre múltiples elementos con stagger), impidiendo que iOS Safari
+        // procesara el scroll del usuario hasta que terminaran.
+        let ctx;
+        if (isDesktop) {
+            ctx = gsap.context(() => {
+                gsap.fromTo(".hero-text",
+                    { y: 50, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power3.out" }
+                );
+                gsap.fromTo(".hero-search",
+                    { y: 30, opacity: 0, scale: 0.95 },
+                    { y: 0, opacity: 1, scale: 1, duration: 1.2, delay: 0.4, ease: "power2.out" }
+                );
+            }, containerRef);
+        }
+
         return () => {
             if (cancelId && window.cancelIdleCallback) window.cancelIdleCallback(cancelId);
-            ctx.revert();
+            if (ctx) ctx.revert();
         };
     }, []);
 
     return (
-        <section ref={containerRef} className="relative w-full min-h-screen flex items-center justify-center pt-20 sm:pt-24 px-4 sm:px-6 overflow-x-hidden bg-slate-50">
+        <section ref={containerRef} className="relative w-full min-h-[100svh] md:min-h-screen flex items-center justify-center pt-20 sm:pt-24 px-4 sm:px-6 overflow-x-hidden bg-slate-50">
             {/* Bright Background — video solo en desktop, gradiente como fallback */}
             <div className="absolute inset-0 z-0 overflow-hidden bg-gradient-to-br from-slate-50 via-orange-50/40 to-slate-100">
                 {showVideo && (
@@ -148,14 +158,20 @@ const Hero = () => {
                     <span className="flex flex-col items-center">
                         <span>Encuentra tu próximo</span>
                         <span className="text-escala-accent">
-                            <BlurText
-                                text="Hogar Ideal"
-                                delay={100}
-                                animateBy="words"
-                                direction="top"
-                                as="span"
-                                className="font-heading"
-                            />
+                            {/* Animación BlurText (filter:blur animado) solo en desktop —
+                                en móvil el filter+will-change saturaba la GPU bloqueando
+                                el scroll al cargar la página. */}
+                            <span className="md:hidden">Hogar Ideal</span>
+                            <span className="hidden md:inline">
+                                <BlurText
+                                    text="Hogar Ideal"
+                                    delay={100}
+                                    animateBy="words"
+                                    direction="top"
+                                    as="span"
+                                    className="font-heading"
+                                />
+                            </span>
                         </span>
                     </span>
                 </h1>
@@ -168,8 +184,11 @@ const Hero = () => {
                     <SmartSearch />
                 </div>
 
-                {/* Logo Strip - Aliados Estratégicos */}
-                <div className="w-full mt-16">
+                {/* Logo Strip - Aliados Estratégicos.
+                    Solo desktop: el RAF loop continuo + 9 imágenes en carrusel
+                    sumaba carga al main thread durante el initial load del
+                    mobile, contribuyendo al scroll bloqueado. */}
+                <div className="hidden md:block w-full mt-16">
                     <LogoStrip />
                 </div>
 

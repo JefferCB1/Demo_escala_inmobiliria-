@@ -51,34 +51,22 @@
   animation-play-state: paused;
 }
 
-/* Scrollbars modernos — delgados, color naranja sutil.
-   Reemplaza el scrollbar feo nativo de Windows con uno acorde al diseño.
-   En mobile y Safari el scrollbar nativo ya es delgado, así que aquí
-   solo afectamos a Chrome/Edge en desktop. */
+/* Scroll funcional pero sin barra visible.
+   En desktop ocultamos la barra para una estética limpia.
+   En móvil el scrollbar nativo ya se oculta solo. */
 @media (min-width: 768px) {
+  /* Chrome, Edge, Safari */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 107, 0, 0.35);
-    border-radius: 10px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 107, 0, 0.6);
+    width: 0;
+    height: 0;
+    display: none;
   }
   /* Firefox */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 107, 0, 0.35) transparent;
-  }
-  /* Evita salto de layout cuando aparece/desaparece el scrollbar */
   html {
-    scrollbar-gutter: stable;
+    scrollbar-width: none;
+  }
+  /* IE / Edge legacy */
+  body {
+    -ms-overflow-style: none;
   }
 }
