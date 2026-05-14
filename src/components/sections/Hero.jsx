@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { SmartSearch } from '../ui/SmartSearch';
 import BlurText from '../ui/BlurText';
@@ -83,8 +83,22 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
 
 const Hero = () => {
     const containerRef = useRef(null);
+    const [showVideo, setShowVideo] = useState(false);
 
     useEffect(() => {
+        // Cargar el video solo si: pantalla grande Y conexión no lenta Y usuario no pidió ahorro de datos.
+        // En móvil servimos solo el gradiente estático — render instantáneo, cero MB descargados.
+        if (typeof window === 'undefined') return;
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlowOrSaveData = conn && (
+            conn.saveData === true ||
+            ['slow-2g', '2g', '3g'].includes(conn.effectiveType)
+        );
+        if (isDesktop && !isSlowOrSaveData) {
+            setShowVideo(true);
+        }
+
         const ctx = gsap.context(() => {
             gsap.fromTo(".hero-text",
                 { y: 50, opacity: 0 },
@@ -100,17 +114,21 @@ const Hero = () => {
 
     return (
         <section ref={containerRef} className="relative w-full min-h-screen flex items-center justify-center pt-20 sm:pt-24 px-4 sm:px-6 overflow-x-hidden bg-slate-50">
-            {/* Bright Background Video with Soft Overlay */}
-            <div className="absolute inset-0 z-0 overflow-hidden bg-slate-100">
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover opacity-30"
-                >
-                    <source src="/inicio-escala.mp4" type="video/mp4" />
-                </video>
+            {/* Bright Background — video solo en desktop, gradiente como fallback */}
+            <div className="absolute inset-0 z-0 overflow-hidden bg-gradient-to-br from-slate-50 via-orange-50/40 to-slate-100">
+                {showVideo && (
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="none"
+                        aria-hidden="true"
+                        className="w-full h-full object-cover opacity-30"
+                    >
+                        <source src="/inicio-escala.mp4" type="video/mp4" />
+                    </video>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-slate-50"></div>
             </div>
 
