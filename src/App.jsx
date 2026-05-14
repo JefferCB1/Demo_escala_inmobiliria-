@@ -9,6 +9,9 @@ function ScrollToTop() {
     return null;
 }
 import { HelmetProvider, Helmet } from 'react-helmet-async';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+import GoogleAnalytics from './components/analytics/GoogleAnalytics';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -129,6 +132,10 @@ function App() {
                 {/* <StickyBottomBar /> */}
                 {/* <FloatingChatbot /> */}
                 <ExitIntentModal />
+                {/* Analytics — solo se activan si están configurados en Vercel */}
+                <Analytics />
+                <SpeedInsights />
+                <GoogleAnalytics />
             </GlobalLayout>
         </Router>
         </HelmetProvider>
