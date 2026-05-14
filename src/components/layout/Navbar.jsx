@@ -106,7 +106,9 @@ const Navbar = () => {
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
+        // passive:true le dice a iOS que NO vamos a llamar preventDefault,
+        // así el navegador no espera nuestro handler y el scroll fluye.
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, [scrolled]);
 
@@ -239,7 +241,7 @@ const Navbar = () => {
         <div className="fixed top-0 left-0 w-full z-50 flex justify-center transition-all duration-700 pointer-events-none">
             <nav className={`pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] w-full flex justify-between items-center
                 ${scrolled
-                    ? 'max-w-6xl bg-white/80 backdrop-blur-3xl border border-gray-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-3 px-4 sm:px-6 md:px-8 rounded-[40px] translate-y-4 w-[95%]'
+                    ? 'max-w-6xl bg-white/90 md:bg-white/80 backdrop-blur-sm md:backdrop-blur-3xl border border-gray-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.08)] py-3 px-4 sm:px-6 md:px-8 rounded-[40px] translate-y-4 w-[95%]'
                     : 'max-w-7xl bg-transparent py-4 sm:py-6 px-4 sm:px-6 md:px-12 translate-y-0 w-full'
                 }`}>
                 <div className="flex items-center gap-4">

@@ -16,7 +16,10 @@ import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Hero from './components/sections/Hero';
 import GlobalLayout from './components/layout/GlobalLayout';
-import { StickyBottomBar } from './components/ui/StickyBottomBar';
+// StickyBottomBar deshabilitado: el listener de scroll + la aparición animada
+// interrumpía el momentum de scroll en iOS Safari. Para reactivar, descomenta
+// el import y el <StickyBottomBar /> abajo.
+// import { StickyBottomBar } from './components/ui/StickyBottomBar';
 import { ExitIntentModal } from './components/ui/ExitIntentModal';
 // Chatbot deshabilitado por solicitud. Para reactivar: descomenta el import y el <FloatingChatbot /> abajo.
 // import FloatingChatbot from './components/ui/FloatingChatbot';
@@ -123,7 +126,7 @@ function App() {
                 </Routes>
                 </Suspense>
                 <Footer />
-                <StickyBottomBar />
+                {/* <StickyBottomBar /> */}
                 {/* <FloatingChatbot /> */}
                 <ExitIntentModal />
             </GlobalLayout>

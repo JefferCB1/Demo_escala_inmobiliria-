@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import BentoCard from '../ui/BentoCard';
 
@@ -35,20 +35,40 @@ const sedes = [
 ];
 
 const PropertyExplorer = () => {
+    const [showVideo, setShowVideo] = useState(false);
+
+    useEffect(() => {
+        // Video background solo en desktop con conexión rápida.
+        // En móvil este video bloqueaba el scroll: descarga ~MB en background
+        // y autoplay continuo consume CPU/GPU.
+        if (typeof window === 'undefined') return;
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        const isSlow = conn && (conn.saveData || ['slow-2g', '2g', '3g'].includes(conn.effectiveType));
+        if (isDesktop && !isSlow) {
+            const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1500));
+            idle(() => setShowVideo(true));
+        }
+    }, []);
+
     return (
         <section className="relative w-full pt-24 pb-8 px-6 z-10 overflow-hidden">
-            {/* Background similar to Hero */}
-            <div className="absolute inset-0 z-0 bg-slate-100">
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover opacity-30"
-                >
-                    <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-panorama-of-a-city-4328-large.mp4" type="video/mp4" />
-                </video>
-                <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px]"></div>
+            {/* Background — video solo desktop, gradiente fallback en móvil */}
+            <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-100 via-white to-slate-50">
+                {showVideo && (
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        preload="none"
+                        aria-hidden="true"
+                        className="w-full h-full object-cover opacity-30"
+                    >
+                        <source src="https://assets.mixkit.co/videos/preview/mixkit-aerial-panorama-of-a-city-4328-large.mp4" type="video/mp4" />
+                    </video>
+                )}
+                {/* backdrop-blur removido del fondo — solo desktop usa el video */}
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/30 to-slate-50"></div>
             </div>
             
