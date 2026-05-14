@@ -22,7 +22,8 @@ import GlobalLayout from './components/layout/GlobalLayout';
 import PortalLinks from './components/ui/PortalLinks';
 import { StickyBottomBar } from './components/ui/StickyBottomBar';
 import { ExitIntentModal } from './components/ui/ExitIntentModal';
-import FloatingChatbot from './components/ui/FloatingChatbot';
+// Chatbot deshabilitado por solicitud. Para reactivar: descomenta el import y el <FloatingChatbot /> abajo.
+// import FloatingChatbot from './components/ui/FloatingChatbot';
 const PropertiesPage = lazy(() => import('./pages/PropertiesPage'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
 const NosotrosPage = lazy(() => import('./pages/NosotrosPage'));
@@ -40,10 +41,13 @@ function HomePage() {
         sections.forEach((section, i) => {
             if (i === 0) return;
 
+            // Animación entrada suave SIN ocultar opacidad inicial — si ScrollTrigger
+            // no se dispara por algún motivo (móvil, refresh, performance), el contenido
+            // sigue visible. Antes empezaba con opacity:0 lo que bloqueaba el scroll
+            // visualmente en algunos móviles.
             gsap.fromTo(section,
-                { opacity: 0, y: 30, force3D: true },
+                { y: 30, force3D: true },
                 {
-                    opacity: 1,
                     y: 0,
                     force3D: true,
                     duration: 0.7,
@@ -58,6 +62,13 @@ function HomePage() {
                 }
             );
         });
+
+        // Refresca ScrollTrigger tras un breve delay por si el layout cambió
+        // (imágenes cargadas, fonts, etc.). Reduce bugs en móvil.
+        const timer = setTimeout(() => {
+            ScrollTrigger.refresh();
+        }, 500);
+        return () => clearTimeout(timer);
     }, { scope: mainRef });
 
     return (
@@ -102,7 +113,7 @@ function App() {
                 </Suspense>
                 <Footer />
                 <StickyBottomBar />
-                <FloatingChatbot />
+                {/* <FloatingChatbot /> */}
                 <ExitIntentModal />
             </GlobalLayout>
         </Router>
