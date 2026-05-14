@@ -8,20 +8,23 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
     const cardRef = useRef(null);
 
     useEffect(() => {
+        // Efecto tilt 3D solo en desktop — en móvil no hay mousemove y el
+        // compositing 3D persistente afecta el scroll.
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+        if (!isDesktop) return;
+
         const card = cardRef.current;
-        
+
         const handleMouseMove = (e) => {
             const rect = card.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
-            
-            // Enhanced Deep Tilt
+
             const rotateX = ((y - centerY) / centerY) * -15;
             const rotateY = ((x - centerX) / centerX) * 15;
 
-            // Track cursor position via CSS Variables for gradient glow
             card.style.setProperty('--mouse-x', `${x}px`);
             card.style.setProperty('--mouse-y', `${y}px`);
 
@@ -63,18 +66,18 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
         : "bg-white border-gray-100";
 
     return (
-        <div ref={cardRef} className={`metric-card relative group overflow-hidden rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${baseClasses}`} style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}>
-            
-            {/* Glowing Spotlight Following Cursor */}
-            <div 
-                className="absolute inset-0 z-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 will-change-[background]"
+        <div ref={cardRef} className={`metric-card relative group overflow-hidden rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${baseClasses} md:[perspective:1200px] md:[transform-style:preserve-3d]`}>
+
+            {/* Glowing Spotlight Following Cursor — solo desktop (hidden md:block) */}
+            <div
+                className="hidden md:block absolute inset-0 z-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 style={{
                     background: `radial-gradient(circle 180px at var(--mouse-x, 50%) var(--mouse-y, 50%), ${dark ? 'rgba(255,255,255,0.1)' : 'rgba(255, 102, 0, 0.08)'}, transparent)`
                 }}
             />
 
-            {/* Inner Content Popping Out (Parallax) */}
-            <div className="relative z-10 flex flex-col items-center" style={{ transform: 'translateZ(40px)' }}>
+            {/* Inner Content — sin parallax en móvil (translateZ no aporta sin perspective). */}
+            <div className="relative z-10 flex flex-col items-center md:[transform:translateZ(40px)]">
                 {children}
             </div>
         </div>
@@ -121,7 +124,7 @@ const Hero = () => {
     }, []);
 
     return (
-        <section ref={containerRef} className="relative w-full min-h-screen flex items-center justify-center pt-20 sm:pt-24 px-4 sm:px-6 overflow-x-hidden bg-slate-50">
+        <section ref={containerRef} className="relative w-full min-h-[100svh] md:min-h-screen flex items-center justify-center pt-20 sm:pt-24 px-4 sm:px-6 overflow-x-hidden bg-slate-50">
             {/* Bright Background — video solo en desktop, gradiente como fallback */}
             <div className="absolute inset-0 z-0 overflow-hidden bg-gradient-to-br from-slate-50 via-orange-50/40 to-slate-100">
                 {showVideo && (
