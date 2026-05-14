@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getPropiedades, getCatalogos } from '../services/simiApi';
+import { getPropiedades, getCatalogos, getBarrios } from '../services/simiApi';
 import { formatPrice } from '../utils/formatters';
 
 // Normaliza opciones: acepta strings ['1','2'] o {value,label} [{value:'1',label:'1 habitación'}]
@@ -73,10 +73,13 @@ const PropertiesPage = () => {
   const [filterTipoId, setFilterTipoId] = useState('');
   const [filterOperacionId, setFilterOperacionId] = useState('');
   const [filterUbicacionId, setFilterUbicacionId] = useState('');
+  const [filterBarrioId, setFilterBarrioId] = useState('');
   const [filterHabitaciones, setFilterHabitaciones] = useState('todos');
   const [sortBy, setSortBy] = useState('recomendado');
   const [propiedades, setPropiedades] = useState([]);
   const [catalogos, setCatalogos] = useState({ ciudades: [], tipos: [], gestiones: [] });
+  const [barrios, setBarrios] = useState([]);
+  const [loadingBarrios, setLoadingBarrios] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -103,6 +106,20 @@ const PropertiesPage = () => {
     if (habitaciones) setFilterHabitaciones(habitaciones);
   }, [searchParams, catalogos]);
 
+  // Al cambiar la ciudad, carga barrios y resetea el barrio seleccionado
+  useEffect(() => {
+    setFilterBarrioId('');
+    if (!filterUbicacionId) {
+      setBarrios([]);
+      return;
+    }
+    setLoadingBarrios(true);
+    getBarrios(filterUbicacionId)
+      .then(({ barrios }) => setBarrios(barrios || []))
+      .catch(() => setBarrios([]))
+      .finally(() => setLoadingBarrios(false));
+  }, [filterUbicacionId]);
+
   // Carga una página. pageToLoad=0 reinicia la lista; >0 hace append.
   const cargarPropiedades = useCallback(async (pageToLoad = 0) => {
     if (pageToLoad === 0) {
@@ -117,6 +134,7 @@ const PropertiesPage = () => {
         limite: String(PER_PAGE),
         pagina: String(pageToLoad),
         ciudad: filterUbicacionId || undefined,
+        barrio: filterBarrioId || undefined,
         tipoInm: filterTipoId || undefined,
         tipOper: filterOperacionId || undefined,
         campo: sortCfg.campo,
@@ -134,7 +152,7 @@ const PropertiesPage = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [filterUbicacionId, filterTipoId, filterOperacionId, sortBy]);
+  }, [filterUbicacionId, filterBarrioId, filterTipoId, filterOperacionId, sortBy]);
 
   // Al cambiar cualquier filtro server-side, reseteamos y pedimos desde la página 0.
   useEffect(() => {
@@ -167,6 +185,10 @@ const PropertiesPage = () => {
   const ciudadOptions = useMemo(
     () => catalogos.ciudades.map(c => ({ value: String(c.id), label: c.nombre })),
     [catalogos.ciudades]
+  );
+  const barrioOptions = useMemo(
+    () => barrios.map(b => ({ value: String(b.id), label: b.nombre })),
+    [barrios]
   );
 
   // ID de "Arriendo" y "Venta" derivados del catálogo gestion
@@ -285,6 +307,20 @@ const PropertiesPage = () => {
                 options={ciudadOptions}
                 allLabel="Todas las ciudades"
               />
+              {/* Dropdown de Barrio aparece solo cuando hay ciudad seleccionada */}
+              {filterUbicacionId && (
+                <>
+                  <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
+                  <SelectField
+                    icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>}
+                    label="Barrio"
+                    value={filterBarrioId}
+                    onChange={setFilterBarrioId}
+                    options={barrioOptions}
+                    allLabel={loadingBarrios ? 'Cargando barrios...' : (barrioOptions.length === 0 ? 'Sin barrios disponibles' : 'Todos los barrios')}
+                  />
+                </>
+              )}
               <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>}
@@ -295,11 +331,12 @@ const PropertiesPage = () => {
                 allLabel="Cualquier cantidad"
               />
               {/* Botón limpiar — solo si hay filtros activos */}
-              {(filterTipoId || filterUbicacionId || filterOperacionId || filterHabitaciones !== 'todos') && (
+              {(filterTipoId || filterUbicacionId || filterBarrioId || filterOperacionId || filterHabitaciones !== 'todos') && (
                 <button
                   onClick={() => {
                     setFilterTipoId('');
                     setFilterUbicacionId('');
+                    setFilterBarrioId('');
                     setFilterOperacionId('');
                     setFilterHabitaciones('todos');
                   }}

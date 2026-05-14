@@ -75,6 +75,7 @@ export async function getPropiedades(filtros = {}) {
   const params = new URLSearchParams();
   // Filtros server-side por ID (SIMI hace el filtrado real)
   if (filtros.ciudad) params.set('ciudad', filtros.ciudad);
+  if (filtros.barrio) params.set('barrio', filtros.barrio);
   if (filtros.tipoInm) params.set('tipoInm', filtros.tipoInm);
   if (filtros.tipOper) params.set('tipOper', filtros.tipOper);
   if (filtros.departamento) params.set('departamento', filtros.departamento);
@@ -96,6 +97,11 @@ export async function getPropiedades(filtros = {}) {
 
 export async function getCatalogos() {
   return apiFetch('/api/catalogos');
+}
+
+export async function getBarrios(idCiudad) {
+  if (!idCiudad) return { barrios: [] };
+  return apiFetch(`/api/barrios?ciudad=${encodeURIComponent(idCiudad)}`);
 }
 
 export async function getPropiedad(id) {
