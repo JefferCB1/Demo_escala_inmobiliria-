@@ -106,7 +106,8 @@ const PropertiesPage = () => {
     if (habitaciones) setFilterHabitaciones(habitaciones);
   }, [searchParams, catalogos]);
 
-  // Al cambiar la ciudad, carga barrios y resetea el barrio seleccionado
+  // Al cambiar la ciudad, carga barrios y resetea el barrio seleccionado.
+  // Si la URL trae ?barrio=nombre, lo resuelve a ID después de cargar.
   useEffect(() => {
     setFilterBarrioId('');
     if (!filterUbicacionId) {
@@ -115,10 +116,19 @@ const PropertiesPage = () => {
     }
     setLoadingBarrios(true);
     getBarrios(filterUbicacionId)
-      .then(({ barrios }) => setBarrios(barrios || []))
+      .then(({ barrios }) => {
+        const list = barrios || [];
+        setBarrios(list);
+        // Resolución de ?barrio=nombre en URL al ID
+        const barrioParam = searchParams.get('barrio');
+        if (barrioParam) {
+          const id = findIdByName(list, barrioParam);
+          if (id) setFilterBarrioId(id);
+        }
+      })
       .catch(() => setBarrios([]))
       .finally(() => setLoadingBarrios(false));
-  }, [filterUbicacionId]);
+  }, [filterUbicacionId, searchParams]);
 
   // Carga una página. pageToLoad=0 reinicia la lista; >0 hace append.
   const cargarPropiedades = useCallback(async (pageToLoad = 0) => {
