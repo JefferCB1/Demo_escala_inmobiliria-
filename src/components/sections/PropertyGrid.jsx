@@ -122,9 +122,6 @@ const PropertyGrid = () => {
           className="relative overflow-hidden"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-          onTouchCancel={() => setIsPaused(false)}
         >
           <div
             className="flex gap-4 animate-marquee py-2"
