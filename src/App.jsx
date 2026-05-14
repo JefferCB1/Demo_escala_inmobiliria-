@@ -15,20 +15,27 @@ import { useGSAP } from '@gsap/react';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Hero from './components/sections/Hero';
-import PropertyGrid from './components/sections/PropertyGrid';
-import PropertyExplorer from './components/sections/PropertyExplorer';
-import Testimonials from './components/sections/Testimonials';
 import GlobalLayout from './components/layout/GlobalLayout';
-import PortalLinks from './components/ui/PortalLinks';
 import { StickyBottomBar } from './components/ui/StickyBottomBar';
 import { ExitIntentModal } from './components/ui/ExitIntentModal';
 // Chatbot deshabilitado por solicitud. Para reactivar: descomenta el import y el <FloatingChatbot /> abajo.
 // import FloatingChatbot from './components/ui/FloatingChatbot';
+
+// Secciones debajo del fold — lazy load para que el bundle inicial sea más liviano
+// y el Hero aparezca casi instantáneo en móvil.
+const PropertyGrid = lazy(() => import('./components/sections/PropertyGrid'));
+const PropertyExplorer = lazy(() => import('./components/sections/PropertyExplorer'));
+const Testimonials = lazy(() => import('./components/sections/Testimonials'));
+const PortalLinks = lazy(() => import('./components/ui/PortalLinks'));
+
 const PropertiesPage = lazy(() => import('./pages/PropertiesPage'));
 const PropertyDetail = lazy(() => import('./pages/PropertyDetail'));
 const NosotrosPage = lazy(() => import('./pages/NosotrosPage'));
 const SedeMedellinPage = lazy(() => import('./pages/SedeMedellinPage'));
 const SedeSabanetaPage = lazy(() => import('./pages/SedeSabanetaPage'));
+
+// Placeholder ligero mientras carga una sección lazy
+const SectionFallback = () => <div className="w-full h-96 bg-slate-50" />;
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -87,10 +94,12 @@ function HomePage() {
             </Helmet>
             <main ref={mainRef} className="flex-1 relative z-10 w-full md:mb-0">
                 <div className="page-section"><Hero /></div>
-                <div className="page-section"><PropertyGrid /></div>
-                <div className="page-section"><PropertyExplorer /></div>
-                <div className="page-section"><PortalLinks /></div>
-                <div className="page-section"><Testimonials /></div>
+                <Suspense fallback={<SectionFallback />}>
+                    <div className="page-section"><PropertyGrid /></div>
+                    <div className="page-section"><PropertyExplorer /></div>
+                    <div className="page-section"><PortalLinks /></div>
+                    <div className="page-section"><Testimonials /></div>
+                </Suspense>
             </main>
         </>
     );
