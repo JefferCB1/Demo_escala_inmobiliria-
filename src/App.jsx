@@ -36,15 +36,18 @@ function HomePage() {
     const mainRef = useRef(null);
 
     useGSAP(() => {
+        // En móvil saltamos animaciones GSAP/ScrollTrigger:
+        // - El bounce nativo de iOS pelea con ScrollTrigger.
+        // - Compositing 3D consume batería innecesaria.
+        // - La animación es decorativa, sin valor funcional crítico.
+        const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+        if (!isDesktop) return;
+
         const sections = mainRef.current.querySelectorAll('.page-section');
 
         sections.forEach((section, i) => {
             if (i === 0) return;
 
-            // Animación entrada suave SIN ocultar opacidad inicial — si ScrollTrigger
-            // no se dispara por algún motivo (móvil, refresh, performance), el contenido
-            // sigue visible. Antes empezaba con opacity:0 lo que bloqueaba el scroll
-            // visualmente en algunos móviles.
             gsap.fromTo(section,
                 { y: 30, force3D: true },
                 {
@@ -63,8 +66,7 @@ function HomePage() {
             );
         });
 
-        // Refresca ScrollTrigger tras un breve delay por si el layout cambió
-        // (imágenes cargadas, fonts, etc.). Reduce bugs en móvil.
+        // Refresca tras layout shifts (fonts, imágenes, etc.)
         const timer = setTimeout(() => {
             ScrollTrigger.refresh();
         }, 500);
