@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCatalogos, getBarrios } from '../../services/simiApi';
 
-const TIPOS = ['Apartamento', 'Apartaestudio', 'Casa', 'Casa Campestre', 'Casa Residencial', 'Oficina'];
-const CIUDADES = ['Sabaneta', 'Medellín', 'Itaguí', 'Envigado', 'La Estrella'];
+// Listas fallback en caso de que catalogos no haya cargado todavía.
+// Se reemplazan con datos reales de SIMI apenas terminan de cargar.
+const TIPOS_FALLBACK = ['Apartamento', 'Apartaestudio', 'Casa', 'Casa Campestre', 'Casa Residencial', 'Oficina'];
+const CIUDADES_FALLBACK = ['Sabaneta', 'Medellín', 'Itaguí', 'Envigado', 'La Estrella'];
 const HABITACIONES = ['1', '2', '3+'];
 
 const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
@@ -27,7 +30,7 @@ const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
             </button>
 
             {open && (
-                <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200]">
+                <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-[200] max-h-80 overflow-y-auto">
                     <button
                         type="button"
                         onMouseDown={() => { onChange(''); setOpen(false); }}
@@ -56,13 +59,63 @@ export const SmartSearch = () => {
     const [operacion, setOperacion] = useState('Arriendo');
     const [tipo, setTipo] = useState('');
     const [ciudad, setCiudad] = useState('');
+    const [barrio, setBarrio] = useState('');
     const [habitaciones, setHabitaciones] = useState('');
+
+    const [catalogos, setCatalogos] = useState({ ciudades: [], tipos: [] });
+    const [barrios, setBarrios] = useState([]);
+    const [loadingBarrios, setLoadingBarrios] = useState(false);
+
+    // Carga catálogos en idle — no bloquea initial render del Hero
+    useEffect(() => {
+        const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 600));
+        const id = idle(() => {
+            getCatalogos()
+                .then(data => setCatalogos({
+                    ciudades: data.ciudades || [],
+                    tipos: data.tipos || [],
+                }))
+                .catch(() => {});
+        });
+        return () => {
+            if (window.cancelIdleCallback) window.cancelIdleCallback(id);
+        };
+    }, []);
+
+    // Al cambiar la ciudad, resetea barrio y carga barrios de la ciudad nueva
+    useEffect(() => {
+        setBarrio('');
+        if (!ciudad || !catalogos.ciudades.length) {
+            setBarrios([]);
+            return;
+        }
+        const ciudadObj = catalogos.ciudades.find(c => c.nombre === ciudad);
+        if (!ciudadObj) {
+            setBarrios([]);
+            return;
+        }
+        setLoadingBarrios(true);
+        getBarrios(ciudadObj.id)
+            .then(({ barrios }) => setBarrios(barrios || []))
+            .catch(() => setBarrios([]))
+            .finally(() => setLoadingBarrios(false));
+    }, [ciudad, catalogos.ciudades]);
+
+    // Usamos catalogos reales si están disponibles, fallback hardcoded si no
+    const tiposOptions = catalogos.tipos.length > 0
+        ? catalogos.tipos.map(t => t.nombre)
+        : TIPOS_FALLBACK;
+    const ciudadesOptions = catalogos.ciudades.length > 0
+        ? catalogos.ciudades.map(c => c.nombre)
+        : CIUDADES_FALLBACK;
+    const barriosOptions = barrios.map(b => b.nombre);
 
     const handleSearch = () => {
         const params = new URLSearchParams();
         if (operacion) params.set('operacion', operacion.toLowerCase());
         if (tipo) params.set('tipo', tipo.toLowerCase());
         if (ciudad) params.set('ciudad', ciudad.toLowerCase());
+        if (barrio) params.set('barrio', barrio.toLowerCase());
         if (habitaciones) params.set('habitaciones', habitaciones);
         navigate(`/propiedades?${params.toString()}`);
     };
@@ -102,7 +155,6 @@ export const SmartSearch = () => {
 
             {/* Search Bar */}
             <div className="w-full bg-white rounded-3xl p-2 shadow-2xl border border-gray-100">
-                {/* Desktop: horizontal pill */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1">
                     <SelectField
                         icon={
@@ -113,7 +165,7 @@ export const SmartSearch = () => {
                         label="Tipo de inmueble"
                         value={tipo}
                         onChange={setTipo}
-                        options={TIPOS}
+                        options={tiposOptions}
                         allLabel="Todos los tipos"
                     />
 
@@ -129,9 +181,28 @@ export const SmartSearch = () => {
                         label="Ciudad / Municipio"
                         value={ciudad}
                         onChange={setCiudad}
-                        options={CIUDADES}
+                        options={ciudadesOptions}
                         allLabel="Todas las ciudades"
                     />
+
+                    {/* Barrio dropdown — solo cuando hay ciudad seleccionada */}
+                    {ciudad && (
+                        <>
+                            <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
+                            <SelectField
+                                icon={
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                    </svg>
+                                }
+                                label="Barrio"
+                                value={barrio}
+                                onChange={setBarrio}
+                                options={barriosOptions}
+                                allLabel={loadingBarrios ? 'Cargando barrios...' : (barriosOptions.length === 0 ? 'Sin barrios disponibles' : 'Todos los barrios')}
+                            />
+                        </>
+                    )}
 
                     <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
 

@@ -33,7 +33,7 @@ async function fetchSimi(token, params) {
     'departamento', params.departamento,
     'ciudad', params.ciudad,
     'zona', 0,
-    'barrio', 0,
+    'barrio', params.barrio || 0,
     'tipoInm', params.tipoInm,
     'tipOper', params.tipOper,
     'areamin', 0,
@@ -82,6 +82,7 @@ export default async function handler(req, res) {
   // Filtros server-side: validados como enteros en rango razonable
   const departamento = safeInt(req.query.departamento, 0, MAX_FILTER_ID);
   const ciudad = safeInt(req.query.ciudad, 0, MAX_FILTER_ID);
+  const barrio = safeInt(req.query.barrio, 0, MAX_FILTER_ID);
   const tipoInm = safeInt(req.query.tipoInm, 0, MAX_FILTER_ID);
   const tipOper = safeInt(req.query.tipOper, 0, MAX_FILTER_ID);
   // Ordenamiento — solo strings de la whitelist, los demás se ignoran (0 = default SIMI)
@@ -107,6 +108,7 @@ export default async function handler(req, res) {
       cantidad: limite,
       departamento,
       ciudad,
+      barrio,
       tipoInm,
       tipOper,
       campo,
