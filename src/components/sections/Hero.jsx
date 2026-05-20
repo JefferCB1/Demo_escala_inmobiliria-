@@ -206,15 +206,15 @@ const Hero = () => {
                             <p className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mt-1">Propiedades</p>
                         </MetricCard>
 
-                        {/* Card 2 - Asesoría 24/7 */}
+                        {/* Card 2 - Atención Personalizada */}
                         <MetricCard delay={0.75} dark={true}>
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-escala-accent to-orange-600 rounded-xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
                                 <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
                             </div>
-                            <span className="text-3xl sm:text-4xl font-heading font-black text-white">24/7</span>
-                            <p className="text-xs sm:text-sm font-bold text-escala-accent uppercase tracking-wider mt-1">Asesoría Personalizada</p>
+                            <span className="text-3xl sm:text-4xl font-heading font-black text-white">1 a 1</span>
+                            <p className="text-xs sm:text-sm font-bold text-escala-accent uppercase tracking-wider mt-1">Atención Personalizada</p>
                         </MetricCard>
 
                         {/* Card 3 - Seguridad */}
