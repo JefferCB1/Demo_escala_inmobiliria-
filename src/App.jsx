@@ -90,10 +90,10 @@ function HomePage() {
         <>
             <Helmet>
                 <title>Escala Inmobiliaria - Propiedades en Medellín y Sabaneta | Compra, Venta y Arriendo</title>
-                <meta name="description" content="Escala Inmobiliaria: expertos en bienes raíces en Medellín y Sabaneta. Encuentra casas, apartamentos y proyectos nuevos. Asesoramiento VIP 24/7." />
+                <meta name="description" content="Escala Inmobiliaria: expertos en bienes raíces en Medellín y Sabaneta. Encuentra casas, apartamentos y proyectos nuevos. Atención personalizada uno a uno." />
                 <link rel="canonical" href="https://escalainmobiliaria.com.co/" />
                 <meta property="og:title" content="Escala Inmobiliaria - Propiedades en Medellín y Sabaneta" />
-                <meta property="og:description" content="Expertos en bienes raíces en Medellín y Sabaneta. Encuentra casas, apartamentos y proyectos nuevos con asesoramiento VIP 24/7." />
+                <meta property="og:description" content="Expertos en bienes raíces en Medellín y Sabaneta. Encuentra casas, apartamentos y proyectos nuevos con atención personalizada uno a uno." />
                 <meta property="og:url" content="https://escalainmobiliaria.com.co/" />
                 <meta property="og:type" content="website" />
                 <meta property="og:image" content="https://escalainmobiliaria.com.co/og-image.jpg" />
