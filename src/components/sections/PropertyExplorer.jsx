@@ -120,7 +120,7 @@ const PropertyExplorer = () => {
                                     <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
                                         <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-2">Líneas de Atención</p>
                                         <a href={`tel:${sede.telefono}`} className="block text-white font-semibold hover:text-orange-200 transition-colors text-sm">
-                                            📞 {sede.telefono}
+                                            📞 {sede.telefono.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')}
                                         </a>
                                     </div>
 
