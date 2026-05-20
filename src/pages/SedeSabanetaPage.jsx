@@ -93,7 +93,7 @@ const SedeSabanetaPage = () => {
                     "name": "Escala Inmobiliaria - Sede Sabaneta",
                     "description": "Sede Sabaneta de Escala Inmobiliaria, expertos en arrendamiento y administración de propiedades en Sabaneta.",
                     "url": "https://escalainmobiliaria.com.co/sede-sabaneta/",
-                    "telephone": "+573009122101",
+                    "telephone": "+573045335318",
                     "address": {
                         "@type": "PostalAddress",
                         "streetAddress": "Carrera 45 # 72 sur - 07 interior 302",
@@ -142,17 +142,17 @@ const SedeSabanetaPage = () => {
                     </p>
                     <div className="sede-hero-text flex flex-col sm:flex-row gap-3 mt-8">
                         <a
-                            href="tel:+573009122101"
-                            aria-label="Llamar a la sede Sabaneta al 3009122101"
+                            href="tel:+573045335318"
+                            aria-label="Llamar a la sede Sabaneta al 3045335318"
                             className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-white text-orange-800 rounded-full font-bold text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
-                            Llamar: 300 912 2101
+                            Llamar: 304 533 5318
                         </a>
                         <a
-                            href="https://wa.me/573009122101?text=Hola,%20necesito%20información%20sobre%20la%20sede%20Sabaneta"
+                            href="https://wa.me/573045335318?text=Hola,%20necesito%20información%20sobre%20la%20sede%20Sabaneta"
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label="Contactar sede Sabaneta por WhatsApp"
@@ -279,7 +279,7 @@ const SedeSabanetaPage = () => {
                                     Arrendatarios
                                 </div>
                             </div>
-                            <a href="tel:+573009122101" aria-label="Línea de atención al cliente para arrendatarios: 3009122101" className="group block">
+                            <a href="tel:+573045335318" aria-label="Línea de atención al cliente para arrendatarios: 3045335318" className="group block">
                                 <BentoCard className="flex items-center gap-4 max-w-md mx-auto hover:-translate-y-1 transition-all duration-300 bg-white border-gray-100 shadow-sm group-hover:shadow-lg group-hover:border-blue-200">
                                     <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:scale-110 transition-transform">
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -288,7 +288,7 @@ const SedeSabanetaPage = () => {
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-sm font-bold text-gray-500 uppercase tracking-wide">Línea de atención al cliente</p>
-                                        <p className="text-xl font-heading font-bold text-escala-dark group-hover:text-blue-600 transition-colors">300 912 2101</p>
+                                        <p className="text-xl font-heading font-bold text-escala-dark group-hover:text-blue-600 transition-colors">304 533 5318</p>
                                     </div>
                                 </BentoCard>
                             </a>
@@ -328,7 +328,7 @@ const SedeSabanetaPage = () => {
                                         </div>
                                         <div>
                                             <p className="font-bold text-escala-dark text-lg">Teléfono principal</p>
-                                            <a href="tel:+573009122101" className="text-orange-600 font-bold text-lg hover:text-orange-500 transition-colors">300 912 2101</a>
+                                            <a href="tel:+573045335318" className="text-orange-600 font-bold text-lg hover:text-orange-500 transition-colors">304 533 5318</a>
                                         </div>
                                     </div>
                                 </div>
@@ -371,7 +371,7 @@ const SedeSabanetaPage = () => {
                                     Nuestro equipo en Sabaneta está listo para atenderte. Ven y conoce cómo podemos administrar y proteger tu inversión inmobiliaria.
                                 </p>
                                 <a
-                                    href="https://wa.me/573009122101?text=Hola,%20quiero%20agendar%20una%20visita%20en%20la%20sede%20Sabaneta"
+                                    href="https://wa.me/573045335318?text=Hola,%20quiero%20agendar%20una%20visita%20en%20la%20sede%20Sabaneta"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label="Agendar visita en sede Sabaneta por WhatsApp"

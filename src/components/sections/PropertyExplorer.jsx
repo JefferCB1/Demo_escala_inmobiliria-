@@ -22,7 +22,7 @@ const sedes = [
     id: 'sabaneta',
     nombre: 'Sede Sabaneta',
     direccion: 'Carrera 45 # 72 sur - 07, Sector Parque',
-    telefono: '3009122101',
+    telefono: '3045335318',
     lineas: {
       cartera: '3045335318',
       reparaciones: '3008913228',

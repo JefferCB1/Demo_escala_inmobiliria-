@@ -15,6 +15,9 @@ export const CONTACTS = {
   sabaneta: {
     address: 'Cra. 45 #75B-72, Sabaneta, Antioquia',
     address_display: 'Carrera 45 # 72 sur - 07 interior 302, Sector Parque',
+    phone: '+573045335318',
+    phone_display: '304 533 5318',
+    whatsapp: '573045335318',
     cartera: '3045335318',
     reparaciones: '3008913228',
     servicios: '3005759048',
