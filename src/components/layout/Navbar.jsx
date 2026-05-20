@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const PAY_URL = 'https://pagos.palomma.com/escalainmobiliariamedellin/auth/login';
-
 const PayButton = () => {
     const [open, setOpen] = useState(false);
     const ref = useRef(null);
+    const location = useLocation();
+
+    const paymentOptions = [
+        { label: 'Pago Medellín', sub: 'Sede Laureles', url: 'https://pagos.palomma.com/escalainmobiliariamedellin/auth/login' },
+        { label: 'Pago Sabaneta', sub: 'Sede Parque', url: 'https://pagos.palomma.com/escalainmobiliariasabaneta/auth/login' },
+    ];
 
     useEffect(() => {
         const handler = (e) => {
@@ -58,11 +62,8 @@ const PayButton = () => {
                         <span className="px-2 py-0.5 rounded text-[9px] font-black tracking-widest"
                             style={{ background: 'rgba(255,255,255,0.18)', color: '#bfdbfe' }}>PSE</span>
                     </div>
-                    {[
-                        { label: 'Pago Medellín', sub: 'Sede Laureles' },
-                        { label: 'Pago Sabaneta', sub: 'Sede Parque' },
-                    ].map(({ label, sub }) => (
-                        <a key={label} href={PAY_URL} target="_blank" rel="noopener noreferrer"
+                    {paymentOptions.map(({ label, sub, url }) => (
+                        <a key={label} href={url} target="_blank" rel="noopener noreferrer"
                             onClick={() => setOpen(false)}
                             className="flex items-center gap-3 px-4 py-3.5 hover:bg-sky-50 transition-colors group/item border-b border-gray-50 last:border-0">
                             <div className="flex-1 min-w-0">
