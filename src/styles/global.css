@@ -70,3 +70,15 @@
     -ms-overflow-style: none;
   }
 }
+
+/* Utility para ocultar scrollbar en cualquier elemento (carruseles, etc.)
+   Aplica en mobile también, distinto al bloque anterior que es solo desktop. */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
