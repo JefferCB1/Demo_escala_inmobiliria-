@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getPropiedades, getCatalogos, getBarrios } from '../services/simiApi';
@@ -6,6 +6,32 @@ import { formatPrice } from '../utils/formatters';
 
 // Normaliza opciones: acepta strings ['1','2'] o {value,label} [{value:'1',label:'1 habitación'}]
 const normalizeOpts = opts => opts.map(o => (typeof o === 'string' ? { value: o, label: o } : o));
+
+// Campo de texto con el mismo aspecto visual que SelectField. Permite que el
+// código del inmueble encaje al lado de los demás filtros sin sobresalir.
+const InputField = ({ icon, label, value, onChange, placeholder, onEnter, maxLength = 30 }) => (
+  <div className="relative flex-1 min-w-0">
+    <label className="flex items-center gap-2 px-4 py-3 cursor-text hover:bg-gray-50 transition-colors rounded-xl text-left">
+      <span className="text-gray-400 flex-shrink-0">{icon}</span>
+      <div className="min-w-0 flex-1 text-left">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 text-left">{label}</p>
+        <input
+          type="text"
+          inputMode="text"
+          autoComplete="off"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && onEnter) { e.preventDefault(); onEnter(); }
+          }}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          className="w-full text-sm font-semibold text-escala-dark bg-transparent border-0 outline-none p-0 placeholder:text-gray-300 placeholder:font-normal"
+        />
+      </div>
+    </label>
+  </div>
+);
 
 const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
   const [open, setOpen] = useState(false);
@@ -60,31 +86,51 @@ const findIdByName = (catalogo, name) => {
 const PER_PAGE = 12; // Por sede. Sin filtro de sede → ~24 ítems por página.
 
 // Mapeo de orden → params SIMI (campo + order)
+// El ordenamiento es post-fetch (UI), no parte de la búsqueda diferida.
 const SORT_OPTIONS = [
   { value: 'recomendado', label: 'Recomendado', campo: 'fecha', order: 'desc' },
   { value: 'barato', label: 'Más barato', campo: 'precio', order: 'asc' },
   { value: 'caro', label: 'Más caro', campo: 'precio', order: 'desc' },
 ];
 
+// Estado inicial de filtros vacío - usado tanto en pending como applied
+const EMPTY_FILTERS = {
+  codigo: '',
+  tipoId: '',
+  ubicacionId: '',
+  barrioId: '',
+  habitaciones: 'todos',
+};
+
 const PropertiesPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  // Filtros: ahora almacenamos IDs (string) de SIMI; '' significa "todos"
-  const [filterTipoId, setFilterTipoId] = useState('');
-  const [filterOperacionId, setFilterOperacionId] = useState('');
-  const [filterUbicacionId, setFilterUbicacionId] = useState('');
-  const [filterBarrioId, setFilterBarrioId] = useState('');
-  const [filterHabitaciones, setFilterHabitaciones] = useState('todos');
+  const resultsRef = useRef(null);
+
+  // --- Estado de filtros: PENDING (UI) vs APPLIED (lo que se manda a la API) ---
+  // El usuario manipula los pending; solo al hacer click en "Buscar" se copian
+  // a applied y se dispara el fetch. El sortBy queda fuera porque es reordenar
+  // resultados ya cargados (post-fetch UI), no una nueva búsqueda.
+  const [pendingFilters, setPendingFilters] = useState(EMPTY_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
   const [sortBy, setSortBy] = useState('recomendado');
+
   const [propiedades, setPropiedades] = useState([]);
   const [catalogos, setCatalogos] = useState({ ciudades: [], tipos: [], gestiones: [] });
   const [barrios, setBarrios] = useState([]);
   const [loadingBarrios, setLoadingBarrios] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [pagina, setPagina] = useState(0);
   const [error, setError] = useState(null);
+  // hasSearched: solo cuando el usuario hace click en Buscar (o llega con
+  // querystring desde el Hero) se dispara el fetch y se muestran resultados.
+  // Antes de eso la UI muestra el skeleton "como si estuviera buscando".
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Helper para actualizar un solo filtro del pending
+  const setPending = (key, value) => setPendingFilters(prev => ({ ...prev, [key]: value }));
 
   // Carga catálogos una sola vez (cache CDN 24h)
   useEffect(() => {
@@ -93,44 +139,65 @@ const PropertiesPage = () => {
       .catch(() => {}); // Si falla, los dropdowns quedan vacíos pero el listado funciona.
   }, []);
 
-  // Mapea params de URL (nombres) a IDs cuando los catálogos estén disponibles
+  // Cuando llegan los catálogos, mapea querystring (?tipo=apartamento) a IDs
+  // y aplica esos filtros de una vez (auto-buscar al entrar con params).
+  // Esto permite que SmartSearch del Hero navegue acá y los resultados se
+  // muestren sin click adicional. SIN querystring no se hace fetch (la UI
+  // queda en "estado buscando" hasta que el usuario use el botón Buscar).
   useEffect(() => {
     if (!catalogos.tipos.length && !catalogos.ciudades.length && !catalogos.gestiones.length) return;
-    const operacion = searchParams.get('operacion');
     const tipo = searchParams.get('tipo');
     const ciudad = searchParams.get('ciudad');
     const habitaciones = searchParams.get('habitaciones');
-    if (operacion) setFilterOperacionId(findIdByName(catalogos.gestiones, operacion));
-    if (tipo) setFilterTipoId(findIdByName(catalogos.tipos, tipo));
-    if (ciudad) setFilterUbicacionId(findIdByName(catalogos.ciudades, ciudad));
-    if (habitaciones) setFilterHabitaciones(habitaciones);
+    const hasAnyParam = tipo || ciudad || habitaciones;
+    if (!hasAnyParam) return; // sin params, no auto-busca
+    const next = { ...EMPTY_FILTERS };
+    if (tipo) next.tipoId = findIdByName(catalogos.tipos, tipo);
+    if (ciudad) next.ubicacionId = findIdByName(catalogos.ciudades, ciudad);
+    if (habitaciones) next.habitaciones = habitaciones;
+    setPendingFilters(next);
+    setAppliedFilters(next);
+    setHasSearched(true);
+    // Nota: ?operacion=venta se ignora porque solo manejamos arriendos.
+    // El barrio se resuelve en el efecto de barrios cuando estos lleguen.
   }, [searchParams, catalogos]);
 
-  // Al cambiar la ciudad, carga barrios y resetea el barrio seleccionado.
-  // Si la URL trae ?barrio=nombre, lo resuelve a ID después de cargar.
+  // Al cambiar la ciudad en PENDING, carga barrios para que el dropdown tenga
+  // opciones. NO toca el applied (la búsqueda ya está hecha con el barrio viejo
+  // hasta que el usuario haga click en Buscar de nuevo).
   useEffect(() => {
-    setFilterBarrioId('');
-    if (!filterUbicacionId) {
+    // Resetea solo el barrio pending al cambiar ciudad pending
+    setPendingFilters(prev => ({ ...prev, barrioId: '' }));
+    if (!pendingFilters.ubicacionId) {
       setBarrios([]);
       return;
     }
     setLoadingBarrios(true);
-    getBarrios(filterUbicacionId)
+    getBarrios(pendingFilters.ubicacionId)
       .then(({ barrios }) => {
         const list = barrios || [];
         setBarrios(list);
-        // Resolución de ?barrio=nombre en URL al ID
+        // Resolución de ?barrio=nombre en URL al ID (solo si la ciudad
+        // pending coincide con la applied que vino de URL)
         const barrioParam = searchParams.get('barrio');
-        if (barrioParam) {
+        if (barrioParam && pendingFilters.ubicacionId === appliedFilters.ubicacionId) {
           const id = findIdByName(list, barrioParam);
-          if (id) setFilterBarrioId(id);
+          if (id) {
+            setPendingFilters(prev => ({ ...prev, barrioId: id }));
+            setAppliedFilters(prev => ({ ...prev, barrioId: id }));
+          }
         }
       })
       .catch(() => setBarrios([]))
       .finally(() => setLoadingBarrios(false));
-  }, [filterUbicacionId, searchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingFilters.ubicacionId]);
+
+  // ID de "Arriendo" derivado del catálogo gestion (siempre filtramos por arriendo)
+  const idArriendo = findIdByName(catalogos.gestiones, 'arriendo');
 
   // Carga una página. pageToLoad=0 reinicia la lista; >0 hace append.
+  // Lee SIEMPRE de appliedFilters (no pending).
   const cargarPropiedades = useCallback(async (pageToLoad = 0) => {
     if (pageToLoad === 0) {
       setLoading(true);
@@ -143,10 +210,10 @@ const PropertiesPage = () => {
       const { propiedades: data } = await getPropiedades({
         limite: String(PER_PAGE),
         pagina: String(pageToLoad),
-        ciudad: filterUbicacionId || undefined,
-        barrio: filterBarrioId || undefined,
-        tipoInm: filterTipoId || undefined,
-        tipOper: filterOperacionId || undefined,
+        ciudad: appliedFilters.ubicacionId || undefined,
+        barrio: appliedFilters.barrioId || undefined,
+        tipoInm: appliedFilters.tipoId || undefined,
+        tipOper: idArriendo || undefined, // Siempre arriendo
         campo: sortCfg.campo,
         order: sortCfg.order,
         // habitaciones se mantiene client-side por el caso "3+" (SIMI usa 5+ no 3+)
@@ -162,14 +229,39 @@ const PropertiesPage = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [filterUbicacionId, filterBarrioId, filterTipoId, filterOperacionId, sortBy]);
+  }, [appliedFilters.ubicacionId, appliedFilters.barrioId, appliedFilters.tipoId, sortBy, idArriendo]);
 
-  // Al cambiar cualquier filtro server-side, reseteamos y pedimos desde la página 0.
+  // Cuando cambia appliedFilters o sortBy (vía cargarPropiedades), recarga
+  // desde la página 0. Solo se dispara si el usuario ya buscó al menos una vez.
   useEffect(() => {
+    if (!hasSearched) return;
     setPagina(0);
     setHasMore(true);
     cargarPropiedades(0);
-  }, [cargarPropiedades]);
+  }, [cargarPropiedades, hasSearched]);
+
+  // Acción del botón "Buscar": copia pending → applied (dispara recarga).
+  // Si hay código, navega directo al detalle.
+  const handleBuscar = () => {
+    const codigoLimpio = pendingFilters.codigo.trim();
+    if (codigoLimpio) {
+      navigate(`/propiedad/${encodeURIComponent(codigoLimpio)}`);
+      return;
+    }
+    setAppliedFilters(pendingFilters);
+    setHasSearched(true);
+    // Scroll suave a resultados (con timeout para que el render arranque primero)
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  };
+
+  const handleLimpiar = () => {
+    setPendingFilters(EMPTY_FILTERS);
+    setAppliedFilters(EMPTY_FILTERS);
+    setHasSearched(false);
+    setPropiedades([]);
+  };
 
   const cargarMas = () => {
     const next = pagina + 1;
@@ -177,15 +269,16 @@ const PropertiesPage = () => {
     cargarPropiedades(next);
   };
 
-  // Filtro client-side solo para habitaciones (SIMI no soporta "3+" directamente)
+  // Filtro client-side solo para habitaciones (SIMI no soporta "3+" directamente).
+  // Usa applied.habitaciones, no pending.
   const propiedadesFiltradas = useMemo(() => {
-    if (filterHabitaciones === 'todos') return propiedades;
+    if (appliedFilters.habitaciones === 'todos') return propiedades;
     return propiedades.filter(p => {
       const habs = parseInt(p.habitaciones || 0);
-      if (filterHabitaciones === '3+') return habs >= 3;
-      return habs === parseInt(filterHabitaciones);
+      if (appliedFilters.habitaciones === '3+') return habs >= 3;
+      return habs === parseInt(appliedFilters.habitaciones);
     });
-  }, [propiedades, filterHabitaciones]);
+  }, [propiedades, appliedFilters.habitaciones]);
 
   // Opciones para los dropdowns (orden estable, filtrado de vacíos)
   const tipoOptions = useMemo(
@@ -201,15 +294,14 @@ const PropertiesPage = () => {
     [barrios]
   );
 
-  // ID de "Arriendo" y "Venta" derivados del catálogo gestion
-  const idArriendo = findIdByName(catalogos.gestiones, 'arriendo');
-  const idVenta = findIdByName(catalogos.gestiones, 'venta');
+  const hasActiveFilters = pendingFilters.tipoId || pendingFilters.ubicacionId || pendingFilters.barrioId ||
+    pendingFilters.habitaciones !== 'todos' || pendingFilters.codigo;
 
   const schemaData = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Propiedades en Arriendo y Venta - Escala Inmobiliaria',
-    description: 'Catálogo de propiedades en Medellín, Sabaneta, Itaguí, Envigado y más municipios del Valle de Aburrá.',
+    name: 'Propiedades en Arriendo - Escala Inmobiliaria',
+    description: 'Catálogo de propiedades en arriendo en Medellín, Sabaneta, Itaguí, Envigado y más municipios del Valle de Aburrá.',
     url: 'https://escalainmobiliaria.com.co/propiedades',
     numberOfItems: propiedades.length,
   };
@@ -217,18 +309,17 @@ const PropertiesPage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Helmet>
-        <title>Propiedades en Arriendo y Venta | Escala Inmobiliaria Medellín</title>
-        <meta name="description" content="Encuentra apartamentos, casas y apartaestudios en arriendo y venta en Medellín, Sabaneta, Itaguí y Envigado. Más de 100 propiedades disponibles con asesoría personalizada." />
+        <title>Propiedades en Arriendo | Escala Inmobiliaria Medellín y Sabaneta</title>
+        <meta name="description" content="Encuentra apartamentos, casas y apartaestudios en arriendo en Medellín, Sabaneta, Itaguí y Envigado. Catálogo actualizado con asesoría personalizada." />
         <link rel="canonical" href="https://escalainmobiliaria.com.co/propiedades" />
-        <meta property="og:title" content="Propiedades en Arriendo y Venta | Escala Inmobiliaria" />
-        <meta property="og:description" content="Explora nuestro portafolio de propiedades en el área metropolitana de Medellín." />
+        <meta property="og:title" content="Propiedades en Arriendo | Escala Inmobiliaria" />
+        <meta property="og:description" content="Explora nuestro portafolio de propiedades en arriendo en el área metropolitana de Medellín." />
         <meta property="og:url" content="https://escalainmobiliaria.com.co/propiedades" />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
 
-      {/* Hero Section - matching main page aesthetic */}
-      <div className="relative pt-28 pb-16 px-4 overflow-hidden bg-slate-50">
-        {/* Background Video with Soft Overlay */}
+      {/* Hero compacto */}
+      <div className="relative pt-28 pb-10 sm:pb-14 px-4 overflow-hidden bg-slate-50">
         <div className="absolute inset-0 z-0 overflow-hidden bg-slate-100">
           <video
             autoPlay
@@ -245,66 +336,33 @@ const PropertiesPage = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-slate-50"></div>
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto">
-          <div className="inline-block px-4 py-1.5 bg-orange-100 text-escala-accent rounded-full text-sm font-bold mb-6 border border-orange-200 uppercase tracking-widest shadow-sm">
-            Portafolio Exclusivo
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/85 backdrop-blur-sm border border-orange-100 rounded-full shadow-sm mb-5">
+            <span className="w-2 h-2 rounded-full bg-escala-accent animate-pulse" aria-hidden="true" />
+            <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-700">
+              Inmuebles en <span className="text-escala-accent">Arriendo</span>
+            </span>
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-escala-dark mb-4">
-            Nuestras <span className="text-escala-accent">Propiedades</span>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-extrabold text-escala-dark mb-3">
+            Encuentra tu próximo <span className="text-escala-accent">hogar</span>
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl font-medium">
-            Explora nuestra colección de propiedades en Medellín, Sabaneta, Itaguí, Envigado y más.
+          <p className="text-gray-600 text-base sm:text-lg max-w-2xl mx-auto font-medium">
+            Filtra por tipo, ciudad, barrio o ingresa un código si ya conoces el inmueble.
           </p>
         </div>
       </div>
 
-      {/* Filters — mismo diseño que SmartSearch */}
-      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex flex-col items-center">
-
-          {/* Tabs Arriendo / Venta — sliding pill */}
-          <div className="relative flex bg-white rounded-full p-1 shadow-md border border-gray-100 mb-4">
-            <span
-              aria-hidden="true"
-              className="absolute inset-y-1 rounded-full"
-              style={{
-                width: 'calc(50% - 4px)',
-                left: '4px',
-                background: 'linear-gradient(135deg, #FF6B00, #e66000)',
-                boxShadow: '0 4px 14px rgba(255,107,0,0.35)',
-                transform: filterOperacionId === idVenta && idVenta ? 'translateX(100%)' : 'translateX(0)',
-                transition: 'transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1)',
-                opacity: filterOperacionId ? 1 : 0,
-              }}
-            />
-            {[
-              { id: idArriendo, label: 'Arriendo' },
-              { id: idVenta, label: 'Venta' },
-            ].map(op => (
-              <button
-                key={op.label}
-                type="button"
-                onClick={() => setFilterOperacionId(filterOperacionId === op.id ? '' : op.id)}
-                disabled={!op.id}
-                className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold disabled:opacity-40"
-                style={{
-                  color: filterOperacionId === op.id && op.id ? '#fff' : '#6b7280',
-                  transition: 'color 0.25s ease',
-                }}
-              >
-                {op.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Card de filtros */}
-          <div className="w-full bg-white rounded-3xl p-2 shadow-2xl border border-gray-100">
+      {/* Bloque de filtros - prominente, no en sticky para que se sienta como un paso del flujo */}
+      <div className="relative -mt-8 sm:-mt-10 px-4 z-20">
+        <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 p-4 sm:p-6">
+          {/* Filtros */}
+          <div className="bg-white rounded-2xl border border-gray-100">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1">
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
                 label="Tipo de inmueble"
-                value={filterTipoId}
-                onChange={setFilterTipoId}
+                value={pendingFilters.tipoId}
+                onChange={(v) => setPending('tipoId', v)}
                 options={tipoOptions}
                 allLabel="Todos los tipos"
               />
@@ -312,20 +370,20 @@ const PropertiesPage = () => {
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
                 label="Ciudad / Municipio"
-                value={filterUbicacionId}
-                onChange={setFilterUbicacionId}
+                value={pendingFilters.ubicacionId}
+                onChange={(v) => setPending('ubicacionId', v)}
                 options={ciudadOptions}
                 allLabel="Todas las ciudades"
               />
               {/* Dropdown de Barrio aparece solo cuando hay ciudad seleccionada */}
-              {filterUbicacionId && (
+              {pendingFilters.ubicacionId && (
                 <>
                   <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
                   <SelectField
                     icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" /></svg>}
                     label="Barrio"
-                    value={filterBarrioId}
-                    onChange={setFilterBarrioId}
+                    value={pendingFilters.barrioId}
+                    onChange={(v) => setPending('barrioId', v)}
                     options={barrioOptions}
                     allLabel={loadingBarrios ? 'Cargando barrios...' : (barrioOptions.length === 0 ? 'Sin barrios disponibles' : 'Todos los barrios')}
                   />
@@ -335,76 +393,87 @@ const PropertiesPage = () => {
               <SelectField
                 icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>}
                 label="Habitaciones"
-                value={filterHabitaciones === 'todos' ? '' : filterHabitaciones}
-                onChange={(v) => setFilterHabitaciones(v || 'todos')}
+                value={pendingFilters.habitaciones === 'todos' ? '' : pendingFilters.habitaciones}
+                onChange={(v) => setPending('habitaciones', v || 'todos')}
                 options={['1', '2', '3+']}
                 allLabel="Cualquier cantidad"
               />
-              {/* Botón limpiar — solo si hay filtros activos */}
-              {(filterTipoId || filterUbicacionId || filterBarrioId || filterOperacionId || filterHabitaciones !== 'todos') && (
-                <button
-                  onClick={() => {
-                    setFilterTipoId('');
-                    setFilterUbicacionId('');
-                    setFilterBarrioId('');
-                    setFilterOperacionId('');
-                    setFilterHabitaciones('todos');
-                  }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-5 py-4 rounded-2xl text-sm font-bold text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                  Limpiar
-                </button>
-              )}
+              <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
+              <InputField
+                icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" /></svg>}
+                label="Código"
+                value={pendingFilters.codigo}
+                onChange={(v) => setPending('codigo', v)}
+                placeholder="Opcional"
+                onEnter={handleBuscar}
+              />
             </div>
           </div>
 
-          <div className="w-full mt-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <p className="text-xs text-gray-400 font-medium order-2 sm:order-1">
-              {loading ? 'Buscando propiedades...' : `${propiedadesFiltradas.length} ${propiedadesFiltradas.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}`}
-            </p>
-
-            {/* Selector de orden — pills sutiles */}
-            <div className="order-1 sm:order-2 flex items-center gap-1.5 bg-gray-100 rounded-full p-1 self-start sm:self-auto">
-              {SORT_OPTIONS.map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setSortBy(opt.value)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    sortBy === opt.value
-                      ? 'bg-white text-escala-dark shadow-sm'
-                      : 'text-gray-500 hover:text-escala-dark'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+          {/* Botones */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 mt-4">
+            <button
+              type="button"
+              onClick={handleBuscar}
+              className="w-full sm:flex-1 bg-escala-accent hover:bg-[#e66000] text-white px-8 py-4 rounded-2xl font-bold text-sm sm:text-base transition-all duration-300 shadow-[0_4px_15px_rgba(255,107,0,0.4)] hover:shadow-[0_6px_20px_rgba(255,107,0,0.5)] hover:-translate-y-0.5 active:scale-95 flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Buscar
+            </button>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleLimpiar}
+                className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-6 py-4 rounded-2xl text-sm font-bold text-gray-500 hover:text-red-500 hover:bg-red-50 border-2 border-gray-100 hover:border-red-100 transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                Limpiar
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Properties Grid */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {loading ? (
-          <>
-            {/* Indicador animado superior */}
-            <div className="flex items-center justify-center gap-3 mb-8" role="status" aria-live="polite">
-              <div className="relative w-6 h-6">
-                <div className="absolute inset-0 rounded-full border-2 border-orange-200" />
-                <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-escala-accent animate-spin" />
-              </div>
-              <p className="text-sm font-semibold text-gray-600">
-                Buscando las mejores propiedades
-                <span className="inline-block w-4 text-left">
-                  <span className="animate-[pulse_1.4s_ease-in-out_infinite]">.</span>
-                  <span className="animate-[pulse_1.4s_ease-in-out_0.2s_infinite]">.</span>
-                  <span className="animate-[pulse_1.4s_ease-in-out_0.4s_infinite]">.</span>
-                </span>
-              </p>
-            </div>
+      {/* Resultados */}
+      <div ref={resultsRef} className="max-w-7xl mx-auto px-4 pt-12 sm:pt-16 pb-8">
+        {/* Contador + ordenamiento */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+          <p className="text-sm text-gray-500 font-medium order-2 sm:order-1">
+            {!hasSearched ? (
+              'Aplica filtros y haz click en buscar'
+            ) : loading ? (
+              'Buscando propiedades...'
+            ) : (
+              <>
+                <span className="text-escala-dark font-bold">{propiedadesFiltradas.length}</span>{' '}
+                {propiedadesFiltradas.length === 1 ? 'propiedad encontrada' : 'propiedades encontradas'}
+              </>
+            )}
+          </p>
 
+          {/* Selector de orden — pills sutiles */}
+          <div className="order-1 sm:order-2 flex items-center gap-1.5 bg-gray-100 rounded-full p-1 self-start sm:self-auto">
+            {SORT_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setSortBy(opt.value)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  sortBy === opt.value
+                    ? 'bg-white text-escala-dark shadow-sm'
+                    : 'text-gray-500 hover:text-escala-dark'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {(!hasSearched || loading) ? (
+          <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
@@ -413,14 +482,12 @@ const PropertiesPage = () => {
                   style={{ animationDelay: `${i * 80}ms` }}
                   aria-hidden="true"
                 >
-                  {/* Imagen + badges */}
                   <div className="relative h-48 bg-gradient-to-br from-gray-200 to-gray-100 overflow-hidden">
                     <div className="absolute top-3 left-3 h-6 w-20 rounded-full bg-gray-300/70" />
                     <div className="absolute top-3 right-3 h-6 w-16 rounded-full bg-gray-300/70" />
                     <div className="absolute bottom-3 left-3 h-5 w-24 rounded bg-gray-300/70" />
                   </div>
 
-                  {/* Contenido */}
                   <div className="p-4 space-y-3">
                     <div className="flex items-center justify-between gap-2">
                       <div className="h-5 w-1/2 rounded bg-gray-200" />
@@ -435,7 +502,6 @@ const PropertiesPage = () => {
                     <div className="h-10 rounded-xl bg-gradient-to-r from-orange-100 via-orange-200 to-orange-100" />
                   </div>
 
-                  {/* Overlay shimmer */}
                   <div className="pointer-events-none absolute inset-0 overflow-hidden">
                     <div className="absolute top-0 left-0 h-full w-1/2 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer" />
                   </div>
@@ -460,7 +526,7 @@ const PropertiesPage = () => {
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
-                onClick={cargarPropiedades}
+                onClick={() => cargarPropiedades(0)}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-escala-accent text-white rounded-xl font-bold hover:bg-orange-600 hover:shadow-lg hover:-translate-y-0.5 transition-all"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,8 +550,8 @@ const PropertiesPage = () => {
         ) : propiedadesFiltradas.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {propiedadesFiltradas.map((propiedad) => (
-              <div 
-                key={propiedad.id} 
+              <div
+                key={propiedad.id}
                 onClick={() => navigate(`/propiedad/${propiedad.id}`)}
                 className="group bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:-translate-y-1 cursor-pointer"
               >
@@ -560,6 +626,7 @@ const PropertiesPage = () => {
                     href={`https://wa.me/${propiedad.whatsapp}?text=Buen día, me interesa ${propiedad.tipo} en ${propiedad.ubicacion} código ${propiedad.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                     className="block w-full bg-escala-accent hover:bg-orange-600 text-white py-2.5 px-4 rounded-xl font-bold text-center transition-colors flex items-center justify-center gap-2"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

@@ -202,19 +202,22 @@ const Hero = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
                             </div>
-                            <span className="text-3xl sm:text-4xl font-heading font-black text-escala-dark">150+</span>
+                            <span className="text-3xl sm:text-4xl font-heading font-black text-escala-dark">250+</span>
                             <p className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mt-1">Propiedades</p>
                         </MetricCard>
 
-                        {/* Card 2 - Atención Personalizada */}
+                        {/* Card 2 - Pago Seguro y Oportuno */}
                         <MetricCard delay={0.75} dark={true}>
                             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-escala-accent to-orange-600 rounded-xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                                {/* Icono de moneda */}
                                 <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    <circle cx="12" cy="12" r="9" strokeWidth="2" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.5 9.5a2.5 2.5 0 00-5 0c0 1.38 1.12 2 2.5 2s2.5.62 2.5 2a2.5 2.5 0 01-5 0" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.5v1M12 16.5v1" />
                                 </svg>
                             </div>
-                            <span className="text-3xl sm:text-4xl font-heading font-black text-white">1 a 1</span>
-                            <p className="text-xs sm:text-sm font-bold text-escala-accent uppercase tracking-wider mt-1">Atención Personalizada</p>
+                            <span className="text-2xl sm:text-3xl font-heading font-black text-white leading-tight">Pago Seguro</span>
+                            <p className="text-xs sm:text-sm font-bold text-escala-accent uppercase tracking-wider mt-1">y Oportuno</p>
                         </MetricCard>
 
                         {/* Card 3 - Seguridad */}
@@ -225,7 +228,7 @@ const Hero = () => {
                                 </svg>
                             </div>
                             <span className="text-3xl sm:text-4xl font-heading font-black text-escala-dark">100%</span>
-                            <p className="text-xs sm:text-sm font-bold text-gray-400 uppercase tracking-wider mt-1">Seguro</p>
+                            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1 leading-tight">Cumplimos en daños y servicios públicos</p>
                         </MetricCard>
                     </div>
                 </div>
