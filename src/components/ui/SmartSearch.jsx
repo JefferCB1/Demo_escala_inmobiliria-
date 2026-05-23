@@ -8,6 +8,33 @@ const TIPOS_FALLBACK = ['Apartamento', 'Apartaestudio', 'Casa', 'Casa Campestre'
 const CIUDADES_FALLBACK = ['Sabaneta', 'Medellín', 'Itaguí', 'Envigado', 'La Estrella'];
 const HABITACIONES = ['1', '2', '3+'];
 
+// Campo de texto con el mismo aspecto que SelectField, pero permite escribir.
+// Útil para el código del inmueble: visualmente encaja con el resto de filtros
+// y no sobresale como un input de página.
+const InputField = ({ icon, label, value, onChange, placeholder, onEnter, maxLength = 30 }) => (
+    <div className="relative flex-1 min-w-0">
+        <label className="flex items-center gap-2 px-4 py-3 cursor-text hover:bg-gray-50 transition-colors rounded-xl text-left">
+            <span className="text-gray-400 flex-shrink-0">{icon}</span>
+            <div className="min-w-0 flex-1 text-left">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 text-left">{label}</p>
+                <input
+                    type="text"
+                    inputMode="text"
+                    autoComplete="off"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && onEnter) { e.preventDefault(); onEnter(); }
+                    }}
+                    placeholder={placeholder}
+                    maxLength={maxLength}
+                    className="w-full text-sm font-semibold text-escala-dark bg-transparent border-0 outline-none p-0 placeholder:text-gray-300 placeholder:font-normal"
+                />
+            </div>
+        </label>
+    </div>
+);
+
 const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
     const [open, setOpen] = useState(false);
 
@@ -56,7 +83,11 @@ const SelectField = ({ icon, label, value, onChange, options, allLabel }) => {
 
 export const SmartSearch = () => {
     const navigate = useNavigate();
-    const [operacion, setOperacion] = useState('Arriendo');
+    // Operación fija: solo manejamos arriendo. Si en el futuro hay ventas, se
+    // puede volver a meter como prop o variante.
+    const OPERACION = 'Arriendo';
+
+    const [codigo, setCodigo] = useState('');
     const [tipo, setTipo] = useState('');
     const [ciudad, setCiudad] = useState('');
     const [barrio, setBarrio] = useState('');
@@ -111,8 +142,16 @@ export const SmartSearch = () => {
     const barriosOptions = barrios.map(b => b.nombre);
 
     const handleSearch = () => {
+        // Si el usuario escribió un código, va directo al detalle.
+        // Limpiamos espacios y caracteres no permitidos por el backend.
+        const codigoLimpio = codigo.trim();
+        if (codigoLimpio) {
+            navigate(`/propiedad/${encodeURIComponent(codigoLimpio)}`);
+            return;
+        }
+
         const params = new URLSearchParams();
-        if (operacion) params.set('operacion', operacion.toLowerCase());
+        params.set('operacion', OPERACION.toLowerCase());
         if (tipo) params.set('tipo', tipo.toLowerCase());
         if (ciudad) params.set('ciudad', ciudad.toLowerCase());
         if (barrio) params.set('barrio', barrio.toLowerCase());
@@ -122,35 +161,12 @@ export const SmartSearch = () => {
 
     return (
         <div className="w-full max-w-4xl mx-auto flex flex-col items-center px-4 sm:px-0">
-            {/* Tabs Arriendo / Venta — sliding pill */}
-            <div className="relative flex bg-white/80 backdrop-blur-sm rounded-full p-1 shadow-md border border-gray-100 mb-4">
-                {/* Pastilla animada */}
-                <span
-                    aria-hidden="true"
-                    className="absolute inset-y-1 rounded-full"
-                    style={{
-                        width: 'calc(50% - 4px)',
-                        left: '4px',
-                        background: 'linear-gradient(135deg, #FF6B00, #e66000)',
-                        boxShadow: '0 4px 14px rgba(255,107,0,0.35)',
-                        transform: operacion === 'Venta' ? 'translateX(100%)' : 'translateX(0)',
-                        transition: 'transform 0.35s cubic-bezier(0.34, 1.45, 0.64, 1)',
-                    }}
-                />
-                {['Arriendo', 'Venta'].map(op => (
-                    <button
-                        key={op}
-                        type="button"
-                        onClick={() => setOperacion(op)}
-                        className="relative z-10 flex-1 px-6 py-2 rounded-full text-sm font-bold"
-                        style={{
-                            color: operacion === op ? '#fff' : '#6b7280',
-                            transition: 'color 0.25s ease',
-                        }}
-                    >
-                        {op}
-                    </button>
-                ))}
+            {/* Badge: indica claramente que el catálogo es solo de arriendos */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/85 backdrop-blur-sm border border-orange-100 rounded-full shadow-sm mb-4">
+                <span className="w-2 h-2 rounded-full bg-escala-accent animate-pulse" aria-hidden="true" />
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-700">
+                    Inmuebles en <span className="text-escala-accent">Arriendo</span>
+                </span>
             </div>
 
             {/* Search Bar */}
@@ -217,6 +233,21 @@ export const SmartSearch = () => {
                         onChange={setHabitaciones}
                         options={HABITACIONES}
                         allLabel="Cualquier cantidad"
+                    />
+
+                    <div className="hidden sm:block w-px h-10 bg-gray-200 self-center flex-shrink-0" />
+
+                    <InputField
+                        icon={
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                            </svg>
+                        }
+                        label="Código"
+                        value={codigo}
+                        onChange={setCodigo}
+                        placeholder="Opcional"
+                        onEnter={handleSearch}
                     />
 
                     <button
