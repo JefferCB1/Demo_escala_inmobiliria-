@@ -26,7 +26,7 @@ const LogoStrip = () => {
           Aliados Estratégicos
         </h2>
         <p className="text-gray-600 mt-1 text-sm">
-          Trabajamos con los mejores portales inmobiliarios
+          Trabajamos con los mejores del sector inmobiliario
         </p>
       </div>
       
