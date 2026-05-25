@@ -85,7 +85,8 @@ const Testimonials = () => {
                         Lo que dicen <span className="text-escala-accent">nuestros clientes</span>
                     </h2>
                     <p className="text-gray-600 font-medium max-w-2xl mx-auto">
-                        Opiniones reales publicadas en Google por propietarios y arrendatarios que confían en nosotros.
+                        Opiniones reales publicadas en Google por propietarios y arrendatarios
+                        <span className="block">que confían en nosotros.</span>
                     </p>
                 </div>
 
