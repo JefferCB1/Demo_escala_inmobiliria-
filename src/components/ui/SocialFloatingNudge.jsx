@@ -48,13 +48,14 @@ const SocialFloatingNudge = () => {
         setDismissed(true);
     };
 
-    // Solo móvil y tablet (lg:hidden). En desktop ya están las redes en el Footer
-    // bien visible y no queremos saturar la UI.
+    // Aparece en todas las resoluciones (mobile + tablet + desktop) pegado al
+    // borde izquierdo. En desktop ancho hay espacio entre el contenido (max-w-7xl)
+    // y el borde, por lo que no choca con la lectura.
     if (!visible || dismissed) return null;
 
     return (
         <div
-            className="fixed left-0 top-1/2 -translate-y-1/2 z-40 lg:hidden flex flex-col gap-2 pl-1 sm:pl-2 animate-slideInLeft"
+            className="fixed left-0 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 pl-1 sm:pl-2 animate-slideInLeft"
             role="complementary"
             aria-label="Síguenos en redes sociales"
         >
