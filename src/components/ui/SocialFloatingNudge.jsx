@@ -70,7 +70,7 @@ const SocialFloatingNudge = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Visitar ${social.label} de Escala Inmobiliaria`}
-                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-r-xl rounded-l-sm flex items-center justify-center bg-white border border-gray-200 text-gray-500 shadow-md hover:bg-escala-accent hover:border-escala-accent hover:text-white hover:scale-105 focus:bg-escala-accent focus:border-escala-accent focus:text-white focus:outline-none active:bg-escala-accent active:border-escala-accent active:text-white active:scale-95 transition-all duration-300"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-r-xl rounded-l-sm flex items-center justify-center bg-white border border-gray-200 text-escala-accent shadow-md hover:bg-escala-accent hover:border-escala-accent hover:text-white hover:scale-105 focus:bg-escala-accent focus:border-escala-accent focus:text-white focus:outline-none active:bg-escala-accent active:border-escala-accent active:text-white active:scale-95 transition-all duration-300"
                 >
                     {social.icon}
                 </a>
