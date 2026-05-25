@@ -26,6 +26,7 @@ import GlobalLayout from './components/layout/GlobalLayout';
 import { ExitIntentModal } from './components/ui/ExitIntentModal';
 // Chatbot deshabilitado por solicitud. Para reactivar: descomenta el import y el <FloatingChatbot /> abajo.
 // import FloatingChatbot from './components/ui/FloatingChatbot';
+import SocialFloatingNudge from './components/ui/SocialFloatingNudge';
 
 // Secciones debajo del fold — lazy load para que el bundle inicial sea más liviano
 // y el Hero aparezca casi instantáneo en móvil.
@@ -131,6 +132,7 @@ function App() {
                 <Footer />
                 {/* <StickyBottomBar /> */}
                 {/* <FloatingChatbot /> */}
+                <SocialFloatingNudge />
                 <ExitIntentModal />
                 {/* Analytics — solo se activan si están configurados en Vercel */}
                 <Analytics />

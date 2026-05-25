@@ -25,6 +25,7 @@ colors: {
             animation: {
                 'shimmer': 'shimmer 2.5s linear infinite',
                 'slideUp': 'slideUp 0.5s ease-out',
+                'slideInLeft': 'slideInLeft 0.5s cubic-bezier(0.22,1,0.36,1) both',
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                 'marquee': 'marquee 15s linear infinite',
             },
@@ -36,6 +37,10 @@ colors: {
                 slideUp: {
                     '0%': { transform: 'translateY(100%)', opacity: '0' },
                     '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
+                slideInLeft: {
+                    '0%': { transform: 'translate(-110%, -50%)', opacity: '0' },
+                    '100%': { transform: 'translate(0, -50%)', opacity: '1' },
                 },
                 marquee: {
                     '0%': { transform: 'translateX(0)' },
