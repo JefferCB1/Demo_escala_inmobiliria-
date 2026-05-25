@@ -176,12 +176,14 @@ const Navbar = () => {
                     <button
                         onClick={() => toggleAccordion(index)}
                         className={`w-full flex items-center px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] ${
-                            isOpen ? 'bg-orange-50 text-escala-accent' : 'text-escala-dark hover:bg-gray-50'
+                            isOpen
+                                ? 'bg-escala-accent text-white shadow-md shadow-orange-200'
+                                : 'text-escala-dark hover:bg-escala-accent hover:text-white focus:bg-escala-accent focus:text-white focus:outline-none'
                         }`}
                     >
                         <span className="font-semibold text-[15px] flex-1 text-left">{link.label}</span>
                         <svg
-                            className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180 text-escala-accent' : 'text-gray-400'}`}
+                            className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                             fill="none" stroke="currentColor" viewBox="0 0 24 24"
                         >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -197,8 +199,8 @@ const Navbar = () => {
                                         onClick={() => setMobileMenuOpen(false)}
                                         className={`block py-2.5 px-3 text-sm font-medium rounded-xl transition-all ${
                                             location.pathname === child.href
-                                                ? 'text-escala-accent bg-orange-50'
-                                                : 'text-gray-600 hover:text-escala-accent hover:bg-orange-50'
+                                                ? 'bg-escala-accent text-white'
+                                                : 'text-gray-600 hover:bg-escala-accent hover:text-white focus:bg-escala-accent focus:text-white focus:outline-none'
                                         }`}
                                     >
                                         {child.label}
@@ -210,7 +212,7 @@ const Navbar = () => {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={() => setMobileMenuOpen(false)}
-                                        className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:text-escala-accent hover:bg-orange-50 rounded-xl transition-all"
+                                        className="block py-2.5 px-3 text-sm font-medium text-gray-600 hover:bg-escala-accent hover:text-white focus:bg-escala-accent focus:text-white focus:outline-none rounded-xl transition-all"
                                     >
                                         {child.label}
                                     </a>
@@ -229,7 +231,7 @@ const Navbar = () => {
                 className={`flex items-center px-4 py-3.5 rounded-2xl transition-all duration-200 active:scale-[0.98] ${
                     isActive
                         ? 'bg-escala-accent text-white shadow-md shadow-orange-200'
-                        : 'text-escala-dark hover:bg-gray-50'
+                        : 'text-escala-dark hover:bg-escala-accent hover:text-white focus:bg-escala-accent focus:text-white focus:outline-none'
                 }`}
             >
                 <span className="font-semibold text-[15px] flex-1">{link.label}</span>
@@ -330,6 +332,41 @@ const Navbar = () => {
                         {navLinks.map((link, index) => (
                             <MobileLink key={index} link={link} index={index} />
                         ))}
+
+                        {/* Redes sociales — siempre al final del menú móvil */}
+                        <div className="pt-6 mt-4 border-t border-gray-100">
+                            <p className="px-4 mb-3 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                                Síguenos
+                            </p>
+                            <div className="flex gap-3 px-4">
+                                <a
+                                    href="https://www.instagram.com/escalainmobiliariamedellin/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    aria-label="Instagram de Escala Inmobiliaria"
+                                    className="group flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-slate-50 border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-escala-accent hover:border-escala-accent hover:text-white active:scale-95 transition-all"
+                                >
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                                    </svg>
+                                    Instagram
+                                </a>
+                                <a
+                                    href="https://www.tiktok.com/@escala_inmobiliaria"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    aria-label="TikTok de Escala Inmobiliaria"
+                                    className="group flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-2xl bg-slate-50 border border-gray-200 text-gray-600 font-semibold text-sm hover:bg-escala-accent hover:border-escala-accent hover:text-white active:scale-95 transition-all"
+                                >
+                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.85 4.85 0 01-1.01-.07z" />
+                                    </svg>
+                                    TikTok
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
