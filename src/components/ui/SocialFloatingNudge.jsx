@@ -24,17 +24,14 @@ const SOCIALS = [
     },
 ];
 
-// Clave de sessionStorage para recordar si el usuario cerró el nudge.
-// Sessionn (no local) → vuelve a aparecer en siguientes visitas, no es invasivo en la actual.
-const DISMISS_KEY = 'social-nudge-dismissed';
-
 const SocialFloatingNudge = () => {
     const [visible, setVisible] = useState(false);
+    // dismissed es solo estado en memoria — al recargar vuelve a aparecer.
+    // (Antes usábamos sessionStorage pero el cliente prefiere que se muestre
+    // de nuevo en cada recarga para no perder visibilidad de las redes.)
+    const [dismissed, setDismissed] = useState(false);
 
     useEffect(() => {
-        // Si el usuario ya lo cerró en esta sesión, no volver a mostrarlo.
-        if (sessionStorage.getItem(DISMISS_KEY) === '1') return;
-
         const handleScroll = () => {
             // Aparece después de ~400px de scroll (suficiente para no chocar con el Hero).
             if (window.scrollY > 400) {
@@ -48,13 +45,12 @@ const SocialFloatingNudge = () => {
     }, []);
 
     const handleDismiss = () => {
-        sessionStorage.setItem(DISMISS_KEY, '1');
-        setVisible(false);
+        setDismissed(true);
     };
 
     // Solo móvil y tablet (lg:hidden). En desktop ya están las redes en el Footer
     // bien visible y no queremos saturar la UI.
-    if (!visible) return null;
+    if (!visible || dismissed) return null;
 
     return (
         <div
@@ -62,8 +58,8 @@ const SocialFloatingNudge = () => {
             role="complementary"
             aria-label="Síguenos en redes sociales"
         >
-            {/* Badge "Síguenos" — texto pequeño que da contexto al ícono */}
-            <div className="absolute -top-7 left-1 px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-500 text-[9px] font-bold uppercase tracking-widest shadow-sm whitespace-nowrap">
+            {/* Badge "Síguenos" — naranja, alineado al accent del sitio */}
+            <div className="absolute -top-7 left-1 px-2 py-0.5 rounded-full bg-escala-accent text-white text-[9px] font-bold uppercase tracking-widest shadow-md whitespace-nowrap">
                 Síguenos
             </div>
 
