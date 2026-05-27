@@ -1,49 +1,17 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import BentoCard from '../components/ui/BentoCard';
+import PQRSModal from '../components/ui/PQRSModal';
 
 gsap.registerPlugin(ScrollTrigger);
-
-const lineasAtencion = [
-    { label: 'Facturación y Pagos', numero: '3004155950', icono: 'receipt' },
-    { label: 'Solicitudes Medellín', numero: '3207686365', icono: 'clipboard' },
-    { label: 'Reparaciones Medellín', numero: '3008913228', icono: 'wrench' },
-    { label: 'Servicios Públicos y Administraciones', numero: '3244358376', icono: 'building' },
-];
-
-const IconMap = ({ type }) => {
-    const icons = {
-        receipt: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-            </svg>
-        ),
-        clipboard: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-        ),
-        wrench: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        ),
-        building: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-        ),
-    };
-    return icons[type] || icons.building;
-};
 
 const SedeMedellinPage = () => {
     const mainRef = useRef(null);
     const heroRef = useRef(null);
+    const [pqrsOpen, setPqrsOpen] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -142,10 +110,10 @@ const SedeMedellinPage = () => {
                     <p className="sede-hero-text text-base sm:text-lg md:text-xl text-white/80 font-medium max-w-2xl px-4 sm:px-0">
                         Calle 35 No 81 09 interior 201, Laureles. Tu sede de confianza para la administración y gestión de tu patrimonio inmobiliario en Medellín.
                     </p>
-                    <div className="sede-hero-text flex flex-col sm:flex-row gap-3 mt-8">
+                    <div className="sede-hero-text flex flex-wrap justify-center gap-3 mt-8">
                         <a
                             href="tel:+573009122101"
-                            aria-label="Llamar a la sede Medellín al 3009122101"
+                            aria-label="Llamar a la sede Medellín al 300 912 2101"
                             className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-white text-emerald-800 rounded-full font-bold text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -165,6 +133,16 @@ const SedeMedellinPage = () => {
                             </svg>
                             WhatsApp
                         </a>
+                        <button
+                            onClick={() => setPqrsOpen(true)}
+                            aria-label="Radicar PQRS en sede Medellín"
+                            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-white/15 text-white border border-white/40 rounded-full font-bold text-sm sm:text-base backdrop-blur-sm hover:bg-white/25 hover:-translate-y-0.5 transition-all"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            Radicar PQRS
+                        </button>
                     </div>
                 </div>
             </section>
@@ -235,65 +213,52 @@ const SedeMedellinPage = () => {
                     </div>
                 </section>
 
-                {/* Líneas de Atención Propietarios */}
-                <section className="sede-section opacity-0 translate-y-8 w-full py-16 sm:py-20 px-4 sm:px-6 bg-slate-50" aria-labelledby="lineas-heading">
+                {/* Contacto unificado */}
+                <section className="sede-section opacity-0 translate-y-8 w-full py-16 sm:py-20 px-4 sm:px-6 bg-slate-50" aria-labelledby="contacto-heading">
                     <div className="max-w-5xl mx-auto">
                         <div className="text-center mb-12">
                             <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold mb-4 border border-emerald-200 uppercase tracking-widest">
-                                Propietarios
+                                Contacto
                             </div>
-                            <h2 id="lineas-heading" className="text-3xl md:text-4xl font-heading font-extrabold text-escala-dark mb-4 tracking-tight">
-                                Líneas de <span className="text-emerald-600">Atención</span>
+                            <h2 id="contacto-heading" className="text-3xl md:text-4xl font-heading font-extrabold text-escala-dark mb-4 tracking-tight">
+                                Una sola línea para <span className="text-emerald-600">todas tus solicitudes</span>
                             </h2>
                             <p className="text-gray-600 font-medium max-w-xl mx-auto">
-                                Comunícate directamente con el área que necesitas. Nuestro equipo en Medellín está disponible para atenderte.
+                                Llámanos o escríbenos por WhatsApp. Nuestro equipo en Medellín está disponible para atenderte.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                            {lineasAtencion.map((linea, index) => (
-                                <a
-                                    key={index}
-                                    href={`tel:+57${linea.numero}`}
-                                    aria-label={`Llamar a ${linea.label}: ${linea.numero}`}
-                                    className="group"
-                                >
-                                    <BentoCard className="flex items-center gap-4 hover:-translate-y-1 transition-all duration-300 bg-white border-gray-100 shadow-sm group-hover:shadow-lg group-hover:border-emerald-200">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0 text-emerald-600 group-hover:scale-110 transition-transform">
-                                            <IconMap type={linea.icono} />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-bold text-gray-500 uppercase tracking-wide">{linea.label}</p>
-                                            <p className="text-xl font-heading font-bold text-escala-dark group-hover:text-emerald-600 transition-colors">{linea.numero}</p>
-                                        </div>
-                                        <svg className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 ml-auto flex-shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                        </svg>
-                                    </BentoCard>
-                                </a>
-                            ))}
-                        </div>
-
-                        {/* Línea general arrendatarios */}
-                        <div className="mt-8">
-                            <div className="text-center mb-6">
-                                <div className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold border border-blue-200 uppercase tracking-widest">
-                                    Arrendatarios
+                        <a href="tel:+573009122101" aria-label="Llamar a la sede Medellín: 300 912 2101" className="group block max-w-sm mx-auto">
+                            <BentoCard className="flex items-center gap-5 hover:-translate-y-1 transition-all duration-300 bg-white border-gray-100 shadow-md group-hover:shadow-xl group-hover:border-emerald-200 py-6">
+                                <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-xl flex items-center justify-center flex-shrink-0 text-emerald-600 group-hover:scale-110 transition-transform">
+                                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
                                 </div>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-bold text-gray-500 uppercase tracking-wide">Línea de atención</p>
+                                    <p className="text-2xl font-heading font-extrabold text-escala-dark group-hover:text-emerald-600 transition-colors">300 912 2101</p>
+                                </div>
+                            </BentoCard>
+                        </a>
+
+                        {/* PQRS CTA */}
+                        <div className="mt-10 text-center">
+                            <div className="inline-block px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold border border-gray-200 uppercase tracking-widest mb-4">
+                                PQRS
                             </div>
-                            <a href="tel:+573009122101" aria-label="Línea de atención al cliente para arrendatarios: 3009122101" className="group block">
-                                <BentoCard className="flex items-center gap-4 max-w-md mx-auto hover:-translate-y-1 transition-all duration-300 bg-white border-gray-100 shadow-sm group-hover:shadow-lg group-hover:border-blue-200">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center flex-shrink-0 text-blue-600 group-hover:scale-110 transition-transform">
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                        </svg>
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-bold text-gray-500 uppercase tracking-wide">Línea de atención al cliente</p>
-                                        <p className="text-xl font-heading font-bold text-escala-dark group-hover:text-blue-600 transition-colors">300 912 2101</p>
-                                    </div>
-                                </BentoCard>
-                            </a>
+                            <p className="text-gray-600 font-medium max-w-md mx-auto mb-5">
+                                ¿Tienes una petición, queja, reclamo, sugerencia o felicitación? Estamos para escucharte.
+                            </p>
+                            <button
+                                onClick={() => setPqrsOpen(true)}
+                                className="inline-flex items-center gap-2 px-7 py-3 bg-emerald-600 text-white rounded-full font-bold text-sm shadow-md hover:bg-emerald-700 hover:-translate-y-0.5 hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                </svg>
+                                Radicar PQRS
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -389,6 +354,8 @@ const SedeMedellinPage = () => {
                     </div>
                 </section>
             </article>
+
+            <PQRSModal isOpen={pqrsOpen} onClose={() => setPqrsOpen(false)} sede="medellin" />
         </main>
     );
 };
