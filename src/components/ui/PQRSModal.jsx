@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const TIPOS = ['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación'];
 const TIPOS_DOC = ['CC', 'CE', 'NIT', 'Pasaporte'];
-const RELACIONES = ['Propietario', 'Arrendatario', 'Aspirante', 'Otro'];
+const RELACIONES = ['Propietario', 'Arrendatario', 'Otro'];
 
 function generateRadicado() {
     const d = new Date();
@@ -129,7 +129,7 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
 
     return (
         <div
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4"
+            className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4"
             aria-modal="true"
             role="dialog"
             aria-labelledby="pqrs-modal-title"
