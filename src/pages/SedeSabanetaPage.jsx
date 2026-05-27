@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import BentoCard from '../components/ui/BentoCard';
+import PQRSModal from '../components/ui/PQRSModal';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,11 +19,6 @@ const IconMap = ({ type }) => {
         receipt: (
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-            </svg>
-        ),
-        clipboard: (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
         ),
         wrench: (
@@ -43,6 +39,7 @@ const IconMap = ({ type }) => {
 const SedeSabanetaPage = () => {
     const mainRef = useRef(null);
     const heroRef = useRef(null);
+    const [pqrsOpen, setPqrsOpen] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -140,7 +137,7 @@ const SedeSabanetaPage = () => {
                     <p className="sede-hero-text text-base sm:text-lg md:text-xl text-white/80 font-medium max-w-2xl px-4 sm:px-0">
                         Carrera 45 # 72 sur - 07 interior 302, sector parque de Sabaneta. Tu sede de confianza para la administración de tu patrimonio inmobiliario en el sur del Valle de Aburrá.
                     </p>
-                    <div className="sede-hero-text flex flex-col sm:flex-row gap-3 mt-8">
+                    <div className="sede-hero-text flex flex-wrap justify-center gap-3 mt-8">
                         <a
                             href="tel:+573045335318"
                             aria-label="Llamar a la sede Sabaneta al 3045335318"
@@ -163,6 +160,16 @@ const SedeSabanetaPage = () => {
                             </svg>
                             WhatsApp
                         </a>
+                        <button
+                            onClick={() => setPqrsOpen(true)}
+                            aria-label="Radicar PQRS en sede Sabaneta"
+                            className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 bg-white/15 text-white border border-white/40 rounded-full font-bold text-sm sm:text-base backdrop-blur-sm hover:bg-white/25 hover:-translate-y-0.5 transition-all"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            Radicar PQRS
+                        </button>
                     </div>
                 </div>
             </section>
@@ -233,7 +240,7 @@ const SedeSabanetaPage = () => {
                     </div>
                 </section>
 
-                {/* Líneas de Atención Propietarios */}
+                {/* Líneas de Atención */}
                 <section className="sede-section opacity-0 translate-y-8 w-full py-16 sm:py-20 px-4 sm:px-6 bg-slate-50" aria-labelledby="lineas-heading">
                     <div className="max-w-5xl mx-auto">
                         <div className="text-center mb-12">
@@ -292,6 +299,25 @@ const SedeSabanetaPage = () => {
                                     </div>
                                 </BentoCard>
                             </a>
+                        </div>
+
+                        {/* PQRS CTA */}
+                        <div className="mt-10 text-center">
+                            <div className="inline-block px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold border border-gray-200 uppercase tracking-widest mb-4">
+                                PQRS
+                            </div>
+                            <p className="text-gray-600 font-medium max-w-md mx-auto mb-5">
+                                ¿Tienes una petición, queja, reclamo, sugerencia o felicitación? Estamos para escucharte.
+                            </p>
+                            <button
+                                onClick={() => setPqrsOpen(true)}
+                                className="inline-flex items-center gap-2 px-7 py-3 bg-orange-600 text-white rounded-full font-bold text-sm shadow-md hover:bg-orange-700 hover:-translate-y-0.5 hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                </svg>
+                                Radicar PQRS
+                            </button>
                         </div>
                     </div>
                 </section>
@@ -387,6 +413,8 @@ const SedeSabanetaPage = () => {
                     </div>
                 </section>
             </article>
+
+            <PQRSModal isOpen={pqrsOpen} onClose={() => setPqrsOpen(false)} sede="sabaneta" />
         </main>
     );
 };
