@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 const TIPOS = ['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación'];
 const TIPOS_DOC = ['CC', 'CE', 'NIT', 'Pasaporte'];
@@ -127,7 +128,7 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
     const inputClass = `w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition ${theme.focus} focus:outline-none focus:ring-2 focus:ring-opacity-30`;
     const labelClass = 'block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
 
-    return (
+    return createPortal(
         <div
             className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4"
             aria-modal="true"
@@ -372,7 +373,8 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
