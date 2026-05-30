@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Buzón por sede. El formulario manda el campo `sede` ("medellin" | "sabaneta")
 // y aquí decidimos a qué inbox real va el correo.
 const DESTINOS_POR_SEDE = {
-    medellin: 'escalainmbiliariamedellin@gmail.com',
+    medellin: 'escalainmobiliariamedellin@gmail.com',
     sabaneta: 'escalainmobiliariasabaneta@gmail.com',
 };
 // Copia ciega opcional — descomenta si quieres recibir copia interna de cada PQRS:
@@ -71,10 +71,7 @@ export default async function handler(req, res) {
 
     try {
         await resend.emails.send({
-            // Mientras no haya dominio verificado en Resend, usamos su sandbox.
-            // Cuando verifiques escalainmobiliaria.com.co cambia a:
-            //   'PQRS Escala <pqrs@escalainmobiliaria.com.co>'
-            from: 'PQRS Escala Inmobiliaria <onboarding@resend.dev>',
+            from: 'PQRS Escala Inmobiliaria <pqrs@escalainmobiliaria.com.co>',
             to: destinatario,
             reply_to: email,
             subject: `[${radicado}] ${tipo} – ${sedeNombre} | ${asunto}`,
