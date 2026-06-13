@@ -42,7 +42,10 @@ const PayButton = () => {
                     <rect x="2" y="5" width="20" height="14" rx="2" />
                     <path d="M2 10h20" />
                 </svg>
-                <span className="relative hidden lg:inline whitespace-nowrap">Pagos en línea</span>
+                <span className="relative whitespace-nowrap">
+                    <span className="lg:hidden">Pagos</span>
+                    <span className="hidden lg:inline">Pagos en línea</span>
+                </span>
                 <svg className={`relative w-3 h-3 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
                     fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
