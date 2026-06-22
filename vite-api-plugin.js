@@ -15,6 +15,7 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const API_ROOT = resolve(process.cwd(), 'api');
+const WASI_API_FILE = resolve(process.cwd(), 'src/services/wasiApi.js');
 
 function loadEnvFile(path) {
     if (!existsSync(path)) return;
@@ -79,6 +80,30 @@ async function readBody(req) {
     });
 }
 
+/**
+ * Plugin secundario: cuando VITE_USE_WASI=true, intercepta imports de
+ * src/services/simiApi.js y los redirige a wasiApi.js.
+ * NO modifica ningún archivo. La sustitución es solo a nivel de resolución
+ * de módulos en dev, completamente reversible apagando el flag.
+ */
+export function wasiSwitcherPlugin() {
+    return {
+        name: 'wasi-switcher',
+        enforce: 'pre',
+        resolveId(id, importer) {
+            const enabled = process.env.VITE_USE_WASI === 'true';
+            if (!enabled) return null;
+            if (!importer) return null;
+            // Acepta cualquier forma de import: relativo o absoluto
+            const normalized = id.replace(/\\/g, '/');
+            if (/(\/|^)simiApi(\.js)?$/.test(normalized)) {
+                return WASI_API_FILE;
+            }
+            return null;
+        },
+    };
+}
+
 export function apiPlugin() {
     return {
         name: 'escala-api-v2',
@@ -86,6 +111,9 @@ export function apiPlugin() {
             // Cargar .env al iniciar
             loadEnvFile(join(process.cwd(), '.env'));
             loadEnvFile(join(process.cwd(), '.env.local'));
+
+            const wasiActive = process.env.VITE_USE_WASI === 'true';
+            console.log(`\n  \x1b[36m[escala-api-v2]\x1b[0m  ${wasiActive ? '\x1b[32mWasi activo\x1b[0m (VITE_USE_WASI=true)' : '\x1b[33mSIMI activo\x1b[0m (default)'}\n`);
 
             server.middlewares.use(async (req, res, next) => {
                 if (!req.url?.startsWith('/api/')) return next();
