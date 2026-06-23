@@ -14,6 +14,18 @@ import { fetchWasi, extractItems } from './_lib/wasiClient.js';
 const ID_COUNTRY_COLOMBIA = 1;
 const ID_REGION_ANTIOQUIA = 2;
 
+// IDs de las 7 ciudades donde Escala tiene propiedades cargadas.
+// Filtramos el catálogo Wasi (129 ciudades) a este subset para no abrumar al usuario.
+const CIUDADES_ESCALA = new Set([
+    496,    // Medellín
+    698,    // Sabaneta
+    291,    // Envigado
+    389,    // Itagüí
+    89,     // Bello
+    416,    // La Estrella
+    858669, // San Antonio de Prado
+]);
+
 // "Gestiones" estáticas — en Wasi no son catálogo, son booleans for_sale/for_rent/for_transfer
 const GESTIONES = [
     { id: 'arriendo', nombre: 'Arriendo' },
@@ -50,7 +62,7 @@ export default async function handler(req, res) {
 
         const ciudades = extractItems(ciudadesRaw)
             .map(c => mapItem(c, 'id_city'))
-            .filter(x => x.id && x.nombre)
+            .filter(x => x.id && x.nombre && CIUDADES_ESCALA.has(Number(x.id)))
             .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
         // Cache largo: estos catálogos cambian raramente
