@@ -38,6 +38,10 @@
     <link rel="dns-prefetch" href="https://assets.mixkit.co">
     <link rel="dns-prefetch" href="https://wa.me">
 
+    <!-- Preconnect a Wasi CDN — abre TLS antes que llegue la primera imagen (mejora LCP) -->
+    <link rel="preconnect" href="https://image.wasi.co" crossorigin>
+    <link rel="dns-prefetch" href="https://image.wasi.co">
+
     <!-- Preload del endpoint de destacados — arranca el fetch en paralelo con el JS -->
     <link rel="preload" as="fetch" href="/api/destacados" crossorigin="anonymous">
 

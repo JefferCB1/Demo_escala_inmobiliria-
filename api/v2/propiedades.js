@@ -9,6 +9,7 @@
 // - sin sede     → todas las propiedades
 
 import { fetchWasi, extractItems, mapWasiPropiedad, getTipoLabels } from './_lib/wasiClient.js';
+import { enforceRateLimit } from './_lib/rateLimit.js';
 
 // Ciudades que sirve cada sede (case-insensitive, match exacto sobre city_label de Wasi)
 const SEDES = {
@@ -66,6 +67,9 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+
+    // 60 req/min por IP — bloquea scraping casual sin afectar uso humano
+    if (enforceRateLimit(req, res, { limit: 60, windowMs: 60_000, key: 'propiedades' })) return;
 
     const { sede, habitaciones } = req.query;
 

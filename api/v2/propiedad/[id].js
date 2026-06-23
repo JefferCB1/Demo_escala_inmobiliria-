@@ -6,6 +6,7 @@
 // - Catálogo de tipos resuelto a label
 
 import { fetchWasi, mapWasiPropiedad, getTipoLabels } from '../_lib/wasiClient.js';
+import { enforceRateLimit } from '../_lib/rateLimit.js';
 
 const VALID_ID = /^\d{1,15}$/;
 
@@ -65,6 +66,9 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+
+    // 60 req/min por IP
+    if (enforceRateLimit(req, res, { limit: 60, windowMs: 60_000, key: 'propiedad' })) return;
 
     const { id } = req.query;
     if (!id || !VALID_ID.test(id)) {
