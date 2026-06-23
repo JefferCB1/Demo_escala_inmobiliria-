@@ -114,8 +114,10 @@ export function mapWasiPropiedad(p, opts = {}) {
     const area = Number(p.built_area) || Number(p.area) || Number(p.private_area) || 0;
 
     // Ubicación textual para mostrar
+    // En Wasi de Escala, los "barrios" están en zone_label (no location_label).
+    // location_label viene vacío, zone_label tiene los nombres reales (Calasanz, etc).
     const ciudad = (p.city_label || '').trim();
-    const barrio = (p.location_label || '').trim();
+    const barrio = (p.location_label || p.zone_label || '').trim();
     const ubicacion = [barrio, ciudad].filter(Boolean).join(', ') || ciudad || '';
 
     return {

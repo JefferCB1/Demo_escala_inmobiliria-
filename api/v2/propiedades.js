@@ -16,6 +16,12 @@ const SEDES = {
     sabaneta: ['sabaneta'],
 };
 
+// IDs de ciudad en Wasi por sede (para filtrado server-side eficiente)
+const SEDE_CITY_IDS = {
+    medellin: [496, 291, 389, 89, 416, 858669],  // Medellín, Envigado, Itagüí, Bello, La Estrella, San Antonio de Prado
+    sabaneta: [698],                              // Sabaneta
+};
+
 const ALLOWED_SEDES = Object.keys(SEDES);
 const MAX_LIMITE = 100;  // Wasi tope: 100 por request
 
@@ -86,6 +92,33 @@ export default async function handler(req, res) {
         }
     }
 
+    // Filtros por ID — ciudad/barrio/tipo. Wasi acepta natívamente.
+    // El barrio en esta cuenta es zone, no location.
+    const id_city = safeInt(req.query.ciudad, 0, 9999999);
+    const id_zone = safeInt(req.query.barrio, 0, 9999999);
+    const id_property_type = safeInt(req.query.tipoInm, 0, 99999);
+    if (id_city) wasiParams.id_city = id_city;
+    if (id_zone) wasiParams.id_zone = id_zone;
+    if (id_property_type) wasiParams.id_property_type = id_property_type;
+
+    // Operación — frontend envía "arriendo"/"venta" o id numérico SIMI
+    // En Wasi son booleans for_sale/for_rent
+    const tipOper = String(req.query.tipOper || '').toLowerCase();
+    if (tipOper === 'arriendo' || tipOper === '2' || tipOper === 'rent') {
+        wasiParams.for_rent = 'true';
+    } else if (tipOper === 'venta' || tipOper === '1' || tipOper === 'sale') {
+        wasiParams.for_sale = 'true';
+    }
+
+    // Ordenamiento — mapear SIMI campo/order a Wasi order_by/order
+    const campoToWasi = { precio: 'sale_price', fecha: 'created_at', area: 'area' };
+    if (req.query.campo && campoToWasi[req.query.campo]) {
+        wasiParams.order_by = campoToWasi[req.query.campo];
+    }
+    if (req.query.order && (req.query.order === 'asc' || req.query.order === 'desc')) {
+        wasiParams.order = req.query.order;
+    }
+
     try {
         const tipoLabels = await getTipoLabels();
 
@@ -93,16 +126,28 @@ export default async function handler(req, res) {
         let wasiTotal = 0;
 
         if (sede) {
-            // Con filtro de sede: traemos TODO el catálogo Wasi (varias páginas de 100)
-            // y filtramos en memoria. Necesario porque Wasi no expone filtro por
-            // múltiples ciudades en un solo call.
-            const allItems = await fetchAllWasi(wasiParams.min_bedrooms, wasiParams.max_bedrooms);
+            // Con filtro de sede: lanzamos un fetch por cada id_city de la sede
+            // en paralelo (mucho más rápido que fetchAllWasi + filter en memoria).
+            const cityIds = SEDE_CITY_IDS[sede];
+            const baseParams = {};
+            if (wasiParams.min_bedrooms) baseParams.min_bedrooms = wasiParams.min_bedrooms;
+            if (wasiParams.max_bedrooms) baseParams.max_bedrooms = wasiParams.max_bedrooms;
+            if (wasiParams.for_rent) baseParams.for_rent = wasiParams.for_rent;
+            if (wasiParams.for_sale) baseParams.for_sale = wasiParams.for_sale;
+            if (wasiParams.id_property_type) baseParams.id_property_type = wasiParams.id_property_type;
+
+            const results = await Promise.all(
+                cityIds.map(id =>
+                    fetchWasi('/property/search', { ...baseParams, id_city: id, take: 100, skip: 0 })
+                        .then(r => extractItems(r))
+                        .catch(() => [])
+                )
+            );
+            const allItems = results.flat();
             wasiTotal = allItems.length;
-            const ciudadesPermitidas = SEDES[sede];
             const allMapeadas = allItems
                 .map(p => mapWasiPropiedad(p, { tipoLabels }))
-                .filter(Boolean)
-                .filter(p => ciudadesPermitidas.includes((p.ciudad || '').toLowerCase().trim()));
+                .filter(Boolean);
 
             // Paginación en memoria
             mapeadas = allMapeadas.slice(skip, skip + limite);
