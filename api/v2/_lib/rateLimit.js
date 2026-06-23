@@ -12,29 +12,18 @@
 const buckets = new Map();
 
 function getClientIp(req) {
-  // Vercel pone la IP real en x-forwarded-for. Tomamos solo la primera (la del cliente).
   const xff = req.headers['x-forwarded-for'];
   if (xff) return xff.split(',')[0].trim();
   return req.headers['x-real-ip'] || req.socket?.remoteAddress || 'unknown';
 }
 
 function cleanup(now) {
-  // Limpieza oportunista: cuando el Map crece, removemos buckets expirados.
   if (buckets.size < 1000) return;
   for (const [ip, bucket] of buckets) {
     if (bucket.resetAt < now) buckets.delete(ip);
   }
 }
 
-/**
- * Comprueba y consume una ranura del rate limit.
- * @param {object} req - request de Vercel function
- * @param {object} opts - { limit, windowMs, key }
- *   limit: máximo de requests permitidos en la ventana
- *   windowMs: tamaño de la ventana en ms
- *   key: opcional, sufijo para distinguir buckets por endpoint
- * @returns {object} { ok, remaining, retryAfter }
- */
 export function rateLimit(req, { limit = 60, windowMs = 60_000, key = '' } = {}) {
   const ip = getClientIp(req);
   const bucketKey = key ? `${ip}:${key}` : ip;
@@ -61,10 +50,6 @@ export function rateLimit(req, { limit = 60, windowMs = 60_000, key = '' } = {})
   return { ok: true, remaining: limit - bucket.count, retryAfter: 0 };
 }
 
-/**
- * Aplica rate limit y, si excede, responde 429 directamente.
- * @returns {boolean} true si pasó el límite (caller debe retornar), false si OK.
- */
 export function enforceRateLimit(req, res, opts) {
   const result = rateLimit(req, opts);
   res.setHeader('X-RateLimit-Limit', opts?.limit ?? 60);

@@ -6,6 +6,7 @@
 // Opcionalmente acepta ?sede=medellin|sabaneta para filtrar (Opción B).
 
 import { fetchWasi, extractItems, mapWasiPropiedad, getTipoLabels } from './_lib/wasiClient.js';
+import { enforceRateLimit } from './_lib/rateLimit.js';
 
 const SEDES = {
     medellin: ['medellín', 'medellin', 'envigado', 'itagui', 'itagüí', 'bello', 'la estrella', 'san antonio de prado'],
@@ -17,6 +18,9 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+
+    // 60 req/min por IP
+    if (enforceRateLimit(req, res, { limit: 60, windowMs: 60_000, key: 'destacados' })) return;
 
     const { sede } = req.query;
     if (sede && !ALLOWED_SEDES.includes(sede)) {

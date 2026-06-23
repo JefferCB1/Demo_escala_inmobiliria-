@@ -4,6 +4,7 @@
 // Wasi requiere el id_city (numérico), no acepta nombre.
 
 import { fetchWasi, extractItems } from './_lib/wasiClient.js';
+import { enforceRateLimit } from './_lib/rateLimit.js';
 
 const MAX_ID = 9999999;  // San Antonio de Prado es 858669, dejamos margen
 
@@ -17,6 +18,9 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+
+    // 30 req/min por IP — los barrios de cada ciudad cambian raramente
+    if (enforceRateLimit(req, res, { limit: 30, windowMs: 60_000, key: 'barrios' })) return;
 
     const ciudad = safeInt(req.query.ciudad, 0, MAX_ID);
     if (!ciudad) {

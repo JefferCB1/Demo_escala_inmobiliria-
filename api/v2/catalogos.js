@@ -9,6 +9,7 @@
 // Mismo shape que producía /api/catalogos con SIMI para compatibilidad con la UI.
 
 import { fetchWasi, extractItems } from './_lib/wasiClient.js';
+import { enforceRateLimit } from './_lib/rateLimit.js';
 
 // Colombia + Antioquia (los datos reales del cliente están todos acá)
 const ID_COUNTRY_COLOMBIA = 1;
@@ -41,6 +42,9 @@ export default async function handler(req, res) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Método no permitido' });
     }
+
+    // 30 req/min por IP — catálogos cambian poco, no hay razón para más
+    if (enforceRateLimit(req, res, { limit: 30, windowMs: 60_000, key: 'catalogos' })) return;
 
     try {
         // Tres fetches en paralelo — todos chiquitos y cacheables
