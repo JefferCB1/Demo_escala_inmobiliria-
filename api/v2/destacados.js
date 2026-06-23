@@ -44,8 +44,8 @@ export default async function handler(req, res) {
             });
         }
 
-        // Cache 1h + SWR 24h (los destacados cambian poco)
-        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+        // Cache 5 min + SWR 1h — los destacados pueden cambiar y deben reflejarse rápido
+        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
         return res.status(200).json({ destacados });
     } catch (err) {
         console.error('[api/v2/destacados]', err.message);

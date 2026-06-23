@@ -106,7 +106,7 @@ export default async function handler(req, res) {
             propiedad.agente = await getUserCached(raw.id_user);
         }
 
-        res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
         return res.status(200).json({ propiedad });
     } catch (err) {
         console.error('[api/v2/propiedad]', err.message);
