@@ -14,3 +14,14 @@ skills-lock.json
 escala_*.json
 escala_*.html
 extract_data.js
+
+.env*.local
+.vercel/
+
+# Scripts de exploración/debug de la API Wasi — no son código productivo
+test-wasi*.js
+test-v2-*.js
+
+# Artefactos de cotización
+cotizacion_wasi.py
+Cotizacion_Integracion_Wasi.pdf
