@@ -101,6 +101,12 @@ export function wasiSwitcherPlugin() {
             }
             return null;
         },
+        // En build de producción con VITE_USE_WASI=true, redirige el preload
+        // de /api/destacados → /api/v2/destacados para que apunte al endpoint correcto.
+        transformIndexHtml(html) {
+            if (process.env.VITE_USE_WASI !== 'true') return html;
+            return html.replace(/\/api\/destacados/g, '/api/v2/destacados');
+        },
     };
 }
 
