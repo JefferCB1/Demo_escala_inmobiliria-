@@ -23,7 +23,7 @@ async function getUserCached(idUser) {
         // Wasi devuelve datos del user directamente al top-level
         const user = {
             nombre: [data.first_name, data.last_name].filter(Boolean).join(' ').trim() || data.name || '',
-            telefono: data.cell_phone || data.phone || '',
+            telefono: normalizePhone(data.cell_phone || data.phone || ''),
             email: data.email || '',
             foto: data.photo || '',
             whatsapp: data.with_whatsapp === '1' || data.with_whatsapp === true,
@@ -33,6 +33,18 @@ async function getUserCached(idUser) {
     } catch {
         return null;
     }
+}
+
+// Normaliza el teléfono al formato local de 10 dígitos.
+// Wasi devuelve a veces "573002358763" (con código país) y a veces "3002358763".
+// El frontend prepende "+57" para el wa.me/tel: link, así que necesitamos solo los 10 dígitos.
+function normalizePhone(raw) {
+    if (!raw) return '';
+    // Solo dígitos
+    let s = String(raw).replace(/\D/g, '');
+    // Si empieza con 57 y total son 12 dígitos → quita el 57
+    if (s.length === 12 && s.startsWith('57')) s = s.slice(2);
+    return s;
 }
 
 function mapFeatures(features) {

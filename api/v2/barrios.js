@@ -24,16 +24,28 @@ export default async function handler(req, res) {
     }
 
     try {
-        const raw = await fetchWasi(`/location/locations-from-city/${ciudad}`);
-        const items = extractItems(raw);
+        // En Wasi de Escala, los "barrios" están como zones, no locations.
+        // Probamos primero zones (donde están los datos reales); si vienen 0,
+        // hacemos fallback a locations por si en otra cuenta sí los tienen ahí.
+        let raw = await fetchWasi(`/location/zones-from-city/${ciudad}`);
+        let items = extractItems(raw);
+        let source = 'zones';
+        if (items.length === 0) {
+            raw = await fetchWasi(`/location/locations-from-city/${ciudad}`);
+            items = extractItems(raw);
+            source = 'locations';
+        }
         const barrios = items
-            .map(b => ({ id: b.id_location, nombre: b.name }))
+            .map(b => ({
+                id: b.id_zone ?? b.id_location,
+                nombre: b.name,
+            }))
             .filter(x => x.id && x.nombre)
             .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
 
         // Cache 24h + SWR 7d
         res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=604800');
-        return res.status(200).json({ barrios });
+        return res.status(200).json({ barrios, _source: source });
     } catch (err) {
         console.error('[api/v2/barrios]', err.message);
         return res.status(500).json({ error: 'No se pudieron cargar los barrios', detail: err.message });
