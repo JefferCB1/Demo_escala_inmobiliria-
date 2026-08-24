@@ -5,11 +5,53 @@ const TIPOS = ['Petición', 'Queja', 'Reclamo', 'Sugerencia', 'Felicitación'];
 const TIPOS_DOC = ['CC', 'CE', 'NIT', 'Pasaporte'];
 const RELACIONES = ['Propietario', 'Arrendatario', 'Otro'];
 
-function generateRadicado() {
-    const d = new Date();
-    const date = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
-    const rand = Math.floor(Math.random() * 9000) + 1000;
-    return `PQRS-${date}-${rand}`;
+// Mismas reglas que valida el servidor en api/pqrs.js. Se duplican a propósito:
+// aquí para dar feedback inmediato, allá porque el endpoint es público.
+const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
+const RE_DOC = /^[A-Za-z0-9.\- ]+$/;
+const RE_TEL = /^[0-9+\-() ]+$/;
+
+function validarFormulario(f) {
+    const e = {};
+    const t = (v) => (typeof v === 'string' ? v.trim() : '');
+
+    if (!TIPOS.includes(t(f.tipo))) e.tipo = 'Selecciona el tipo de solicitud.';
+
+    const nombre = t(f.nombre);
+    if (!nombre) e.nombre = 'Este campo es obligatorio.';
+    else if (nombre.length < 3) e.nombre = 'Mínimo 3 caracteres.';
+    else if (nombre.length > 120) e.nombre = 'Máximo 120 caracteres.';
+
+    const numDoc = t(f.numDoc);
+    if (!numDoc) e.numDoc = 'Este campo es obligatorio.';
+    else if (numDoc.length < 3) e.numDoc = 'Mínimo 3 caracteres.';
+    else if (numDoc.length > 30) e.numDoc = 'Máximo 30 caracteres.';
+    else if (!RE_DOC.test(numDoc)) e.numDoc = 'Solo letras, números, punto y guion.';
+
+    const email = t(f.email);
+    if (!email) e.email = 'Este campo es obligatorio.';
+    else if (!RE_EMAIL.test(email)) e.email = 'Correo electrónico no válido.';
+    else if (email.length > 150) e.email = 'Máximo 150 caracteres.';
+
+    const telefono = t(f.telefono);
+    if (!telefono) e.telefono = 'Este campo es obligatorio.';
+    else if (telefono.length < 7) e.telefono = 'Mínimo 7 caracteres.';
+    else if (telefono.length > 25) e.telefono = 'Máximo 25 caracteres.';
+    else if (!RE_TEL.test(telefono)) e.telefono = 'Solo números y los signos + - ( ).';
+
+    const asunto = t(f.asunto);
+    if (!asunto) e.asunto = 'Este campo es obligatorio.';
+    else if (asunto.length < 5) e.asunto = 'Mínimo 5 caracteres.';
+    else if (asunto.length > 150) e.asunto = 'Máximo 150 caracteres.';
+
+    const descripcion = t(f.descripcion);
+    if (!descripcion) e.descripcion = 'Este campo es obligatorio.';
+    else if (descripcion.length < 20) e.descripcion = 'Mínimo 20 caracteres.';
+    else if (descripcion.length > 5000) e.descripcion = 'Máximo 5000 caracteres.';
+
+    if (!f.autorizo) e.autorizo = 'Debes autorizar el tratamiento de datos.';
+
+    return e;
 }
 
 const PQRSModal = ({ isOpen, onClose, sede }) => {
@@ -45,14 +87,23 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
     const initialForm = {
         tipo: '', nombre: '', tipoDoc: 'CC', numDoc: '', email: '',
         telefono: '', sede, relacion: '', asunto: '', descripcion: '', autorizo: false,
+        website: '',  // honeypot: invisible para personas, irresistible para bots
     };
 
     const [form, setForm] = useState(initialForm);
+    const [errors, setErrors] = useState({});
     const [status, setStatus] = useState('idle');
     const [errorMsg, setErrorMsg] = useState('');
     const [radicado, setRadicado] = useState('');
     const modalRef = useRef(null);
     const triggerRef = useRef(null);
+
+    // Elementos enfocables del modal, excluyendo el honeypot (tabIndex -1).
+    const getFocusables = () => Array.from(
+        modalRef.current?.querySelectorAll(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+    ).filter(el => el.tabIndex !== -1);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -60,16 +111,13 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
         triggerRef.current = prev;
 
         const timer = setTimeout(() => {
-            const first = modalRef.current?.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-            first?.focus();
+            getFocusables()[0]?.focus();
         }, 50);
 
         const handleKey = (e) => {
             if (e.key === 'Escape') { onClose(); return; }
             if (e.key !== 'Tab' || !modalRef.current) return;
-            const focusable = Array.from(modalRef.current.querySelectorAll(
-                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-            ));
+            const focusable = getFocusables();
             const first = focusable[0];
             const last = focusable[focusable.length - 1];
             if (e.shiftKey) {
@@ -92,30 +140,59 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setForm(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        const val = type === 'checkbox' ? checked : value;
+        setForm(prev => ({ ...prev, [name]: val }));
+        // Limpia el error del campo en cuanto el usuario lo toca
+        setErrors(prev => (prev[name] ? { ...prev, [name]: undefined } : prev));
     };
 
     const handleClose = () => {
         setStatus('idle');
         setErrorMsg('');
+        setErrors({});
         setForm(initialForm);
         onClose();
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validación real. El formulario lleva noValidate porque los radios van
+        // en `sr-only` y la validación nativa no puede enfocarlos: Chrome
+        // abortaba el submit en silencio. Esta la hacemos nosotros.
+        const validationErrors = validarFormulario(form);
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            setStatus('idle');
+            setErrorMsg('');
+            const primero = Object.keys(validationErrors)[0];
+            modalRef.current
+                ?.querySelector(`[name="${primero}"]`)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
         setStatus('loading');
         setErrorMsg('');
-        const rad = generateRadicado();
+        setErrors({});
         try {
             const res = await fetch('/api/pqrs', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...form, radicado: rad }),
+                body: JSON.stringify(form),
             });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Error al procesar la solicitud');
-            setRadicado(rad);
+
+            // Si el endpoint cae, la respuesta puede ser HTML y no JSON.
+            let data = {};
+            try { data = await res.json(); } catch { /* respuesta no-JSON */ }
+
+            if (!res.ok) {
+                if (data.campos) setErrors(data.campos);
+                throw new Error(data.error || `No se pudo radicar la solicitud (error ${res.status}).`);
+            }
+
+            // El radicado lo genera el servidor: es el que vale.
+            setRadicado(data.radicado || '');
             setStatus('success');
         } catch (err) {
             setErrorMsg(err.message);
@@ -125,8 +202,21 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
 
     if (!isOpen) return null;
 
-    const inputClass = `w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition ${theme.focus} focus:outline-none focus:ring-2 focus:ring-opacity-30`;
+    const baseInput = 'w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-opacity-30';
+    const inputClass = (name) => `${baseInput} ${errors[name]
+        ? 'border-red-400 focus:border-red-500 focus:ring-red-500'
+        : `border-gray-200 ${theme.focus}`}`;
     const labelClass = 'block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5';
+
+    // Mensaje de error bajo un campo
+    const FieldError = ({ name }) => errors[name] ? (
+        <p id={`pqrs-${name}-error`} className="mt-1.5 text-xs font-medium text-red-600">{errors[name]}</p>
+    ) : null;
+
+    const a11y = (name) => ({
+        'aria-invalid': errors[name] ? 'true' : undefined,
+        'aria-describedby': errors[name] ? `pqrs-${name}-error` : undefined,
+    });
 
     return createPortal(
         <div
@@ -201,6 +291,16 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} noValidate className="p-6 space-y-5">
+                            {/* Honeypot — fuera de pantalla y fuera del orden de tabulación.
+                                Si llega relleno, el servidor descarta la solicitud. */}
+                            <div aria-hidden="true" className="absolute w-px h-px overflow-hidden -left-[9999px]">
+                                <label htmlFor="pqrs-website">No rellenar este campo</label>
+                                <input
+                                    id="pqrs-website" type="text" name="website" value={form.website}
+                                    onChange={handleChange} tabIndex={-1} autoComplete="off"
+                                />
+                            </div>
+
                             {/* Tipo de solicitud */}
                             <fieldset>
                                 <legend className={labelClass}>Tipo de solicitud <span className="text-red-500">*</span></legend>
@@ -208,7 +308,11 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                                     {TIPOS.map(t => (
                                         <label
                                             key={t}
-                                            className={`flex items-center justify-center text-center px-2 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition ${form.tipo === t ? theme.radioActive + ' border-2' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
+                                            className={`flex items-center justify-center text-center px-2 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition ${form.tipo === t
+                                                ? theme.radioActive + ' border-2'
+                                                : errors.tipo
+                                                    ? 'border-red-300 text-gray-600 hover:border-red-400'
+                                                    : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}
                                         >
                                             <input
                                                 type="radio"
@@ -216,13 +320,13 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                                                 value={t}
                                                 checked={form.tipo === t}
                                                 onChange={handleChange}
-                                                required
                                                 className="sr-only"
                                             />
                                             {t}
                                         </label>
                                     ))}
                                 </div>
+                                <FieldError name="tipo" />
                             </fieldset>
 
                             {/* Nombre */}
@@ -230,17 +334,19 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                                 <label htmlFor="pqrs-nombre" className={labelClass}>Nombre completo <span className="text-red-500">*</span></label>
                                 <input
                                     id="pqrs-nombre" type="text" name="nombre" value={form.nombre}
-                                    onChange={handleChange} required minLength={3}
+                                    onChange={handleChange}
                                     placeholder="Tu nombre completo"
-                                    className={inputClass}
+                                    className={inputClass('nombre')}
+                                    {...a11y('nombre')}
                                 />
+                                <FieldError name="nombre" />
                             </div>
 
                             {/* Identificación */}
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
                                     <label htmlFor="pqrs-tipoDoc" className={labelClass}>Tipo doc.</label>
-                                    <select id="pqrs-tipoDoc" name="tipoDoc" value={form.tipoDoc} onChange={handleChange} className={inputClass}>
+                                    <select id="pqrs-tipoDoc" name="tipoDoc" value={form.tipoDoc} onChange={handleChange} className={inputClass('tipoDoc')}>
                                         {TIPOS_DOC.map(d => <option key={d}>{d}</option>)}
                                     </select>
                                 </div>
@@ -248,10 +354,12 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                                     <label htmlFor="pqrs-numDoc" className={labelClass}>Número de documento <span className="text-red-500">*</span></label>
                                     <input
                                         id="pqrs-numDoc" type="text" name="numDoc" value={form.numDoc}
-                                        onChange={handleChange} required
+                                        onChange={handleChange}
                                         placeholder="1234567890"
-                                        className={inputClass}
+                                        className={inputClass('numDoc')}
+                                        {...a11y('numDoc')}
                                     />
+                                    <FieldError name="numDoc" />
                                 </div>
                             </div>
 
@@ -261,29 +369,34 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                                     <label htmlFor="pqrs-email" className={labelClass}>Correo electrónico <span className="text-red-500">*</span></label>
                                     <input
                                         id="pqrs-email" type="email" name="email" value={form.email}
-                                        onChange={handleChange} required
+                                        onChange={handleChange}
                                         placeholder="tu@correo.com"
-                                        className={inputClass}
+                                        className={inputClass('email')}
+                                        {...a11y('email')}
                                     />
+                                    <FieldError name="email" />
                                 </div>
                                 <div>
                                     <label htmlFor="pqrs-telefono" className={labelClass}>Teléfono <span className="text-red-500">*</span></label>
                                     <input
                                         id="pqrs-telefono" type="tel" name="telefono" value={form.telefono}
-                                        onChange={handleChange} required
+                                        onChange={handleChange}
                                         placeholder="300 000 0000"
-                                        className={inputClass}
+                                        className={inputClass('telefono')}
+                                        {...a11y('telefono')}
                                     />
+                                    <FieldError name="telefono" />
                                 </div>
                             </div>
 
                             {/* Relación */}
                             <div>
                                 <label htmlFor="pqrs-relacion" className={labelClass}>Relación con Escala</label>
-                                <select id="pqrs-relacion" name="relacion" value={form.relacion} onChange={handleChange} className={inputClass}>
+                                <select id="pqrs-relacion" name="relacion" value={form.relacion} onChange={handleChange} className={inputClass('relacion')}>
                                     <option value="">Selecciona una opción</option>
                                     {RELACIONES.map(r => <option key={r}>{r}</option>)}
                                 </select>
+                                <FieldError name="relacion" />
                             </div>
 
                             {/* Asunto */}
@@ -291,10 +404,12 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                                 <label htmlFor="pqrs-asunto" className={labelClass}>Asunto <span className="text-red-500">*</span></label>
                                 <input
                                     id="pqrs-asunto" type="text" name="asunto" value={form.asunto}
-                                    onChange={handleChange} required minLength={5}
+                                    onChange={handleChange}
                                     placeholder="Resumen breve de tu solicitud"
-                                    className={inputClass}
+                                    className={inputClass('asunto')}
+                                    {...a11y('asunto')}
                                 />
+                                <FieldError name="asunto" />
                             </div>
 
                             {/* Descripción */}
@@ -307,30 +422,36 @@ const PQRSModal = ({ isOpen, onClose, sede }) => {
                                 </label>
                                 <textarea
                                     id="pqrs-descripcion" name="descripcion" value={form.descripcion}
-                                    onChange={handleChange} required minLength={20}
+                                    onChange={handleChange}
                                     rows={4}
                                     placeholder="Describe tu solicitud en detalle..."
-                                    className={`${inputClass} resize-none`}
+                                    className={`${inputClass('descripcion')} resize-none`}
+                                    {...a11y('descripcion')}
                                 />
+                                <FieldError name="descripcion" />
                             </div>
 
                             {/* Autorización */}
-                            <label className="flex items-start gap-3 cursor-pointer group">
-                                <input
-                                    type="checkbox" name="autorizo" checked={form.autorizo}
-                                    onChange={handleChange} required
-                                    className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded ${theme.check}`}
-                                />
-                                <span className="text-xs text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors">
-                                    Autorizo el tratamiento de mis datos personales conforme a la{' '}
-                                    <span className={`font-semibold ${theme.accent}`}>política de privacidad</span>{' '}
-                                    de Escala Inmobiliaria. <span className="text-red-500">*</span>
-                                </span>
-                            </label>
+                            <div>
+                                <label className="flex items-start gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox" name="autorizo" checked={form.autorizo}
+                                        onChange={handleChange}
+                                        className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded ${theme.check}`}
+                                        {...a11y('autorizo')}
+                                    />
+                                    <span className="text-xs text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors">
+                                        Autorizo el tratamiento de mis datos personales conforme a la{' '}
+                                        <span className={`font-semibold ${theme.accent}`}>política de privacidad</span>{' '}
+                                        de Escala Inmobiliaria. <span className="text-red-500">*</span>
+                                    </span>
+                                </label>
+                                <FieldError name="autorizo" />
+                            </div>
 
-                            {/* Error */}
+                            {/* Error general */}
                             {status === 'error' && (
-                                <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg" role="alert">
                                     <svg className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
