@@ -9,9 +9,57 @@
 
 const TOKEN = 'diag-8f3a91c2';
 
+// Destinatario FIJO en el código, nunca tomado de la URL: si el destino
+// viniera por query, esto sería un relay abierto para cualquiera que
+// adivinase el token.
+const DESTINO_PRUEBA = 'carvajalberriojefferson@gmail.com';
+
+// GET ?token=...&enviar=1 -> manda UN correo de prueba desde producción,
+// con el mismo `from` y la misma key que usa el PQRS real, y devuelve la
+// respuesta cruda de Resend. Es la única forma de saber si el envío se acepta,
+// porque las keys son de solo-envío y no permiten consultar nada.
+async function enviarPrueba() {
+    const { Resend } = await import('resend');
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const marca = new Date().toISOString();
+
+    const { data, error } = await resend.emails.send({
+        from: 'PQRS Escala Inmobiliaria <pqrs@escalainmobiliaria.com.co>',
+        to: DESTINO_PRUEBA,
+        subject: `[PRUEBA TECNICA] Diagnostico de envio PQRS - ${marca}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px">
+      <h2 style="margin:0 0 12px">Correo de prueba tecnica</h2>
+      <p>Este correo NO es una PQRS. Se envio para comprobar si los correos del
+      formulario estaban saliendo de verdad desde produccion.</p>
+      <p style="color:#64748b;font-size:13px">Enviado desde el mismo dominio verificado
+      y con la misma API key que usa el formulario real.<br>Marca de tiempo: ${marca}</p>
+      <p style="color:#64748b;font-size:13px">Si lo encuentras en <strong>Spam</strong> y no en
+      la bandeja principal, ese es exactamente el problema que estabamos buscando.</p>
+    </div>`,
+    });
+
+    return {
+        aceptadoPorResend: !error,
+        idMensaje: data?.id ?? null,
+        destino: DESTINO_PRUEBA,
+        error: error ? { name: error.name, statusCode: error.statusCode, message: error.message } : null,
+        pista: error
+            ? 'Resend RECHAZO el envio. El motivo esta en `error`.'
+            : 'Resend ACEPTO el envio. Si no llega, el problema es de entrega (spam, filtros de Gmail), no del codigo.',
+    };
+}
+
 export default async function handler(req, res) {
     if (req.query.token !== TOKEN) {
         return res.status(404).json({ error: 'No encontrado' });
+    }
+
+    if (req.query.enviar === '1') {
+        try {
+            return res.status(200).json(await enviarPrueba());
+        } catch (err) {
+            return res.status(200).json({ aceptadoPorResend: false, excepcion: err?.message });
+        }
     }
 
     const key = process.env.RESEND_API_KEY;
