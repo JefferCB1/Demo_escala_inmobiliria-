@@ -38,30 +38,54 @@ function estaDisponible(p) {
     return label === '' || label === 'available' || label === 'disponible';
 }
 
+// Lee una página con un reintento. Si acaba fallando, LANZA.
+//
+// Antes cada página tenía un `.catch(() => [])`. Eso convertía un fallo
+// transitorio en un sitemap truncado que se cacheaba una hora: en el primer
+// arranque en frío tras un deploy salieron 114 fichas en vez de 905 y ahí se
+// quedaron. Un sitemap incompleto es peor que ninguno, así que ahora el fallo
+// sube y el handler responde 503.
+async function traerPagina(skip) {
+    let ultimoError;
+    for (let intento = 1; intento <= 2; intento++) {
+        try {
+            return extractItems(await fetchWasi('/property/search', { take: TAKE, skip }));
+        } catch (err) {
+            ultimoError = err;
+            console.warn(`[api/sitemap] fallo leyendo skip=${skip} (intento ${intento}): ${err.message}`);
+        }
+    }
+    throw new Error(`No se pudo leer skip=${skip}: ${ultimoError?.message}`);
+}
+
 // Recorre /property/search paginando hasta agotar el total (o el tope).
 async function traerIdsPropiedades() {
     const primera = await fetchWasi('/property/search', { take: TAKE, skip: 0 });
     const total = Number(primera.total) || 0;
     const items = extractItems(primera);
 
-    if (items.length < total) {
-        const restantes = Math.min(Math.ceil((total - items.length) / TAKE), MAX_PAGINAS - 1);
-        if (restantes < Math.ceil((total - items.length) / TAKE)) {
-            console.warn(`[api/sitemap] inventario (${total}) supera el tope de ${MAX_PAGINAS * TAKE}; el sitemap queda incompleto`);
-        }
+    const paginasNecesarias = Math.ceil((total - items.length) / TAKE);
+    const restantes = Math.min(paginasNecesarias, MAX_PAGINAS - 1);
+    if (restantes < paginasNecesarias) {
+        console.warn(`[api/sitemap] el inventario (${total}) supera el tope de ${MAX_PAGINAS * TAKE}: sube MAX_PAGINAS`);
+    }
+
+    if (restantes > 0) {
         const paginas = await Promise.all(
-            Array.from({ length: restantes }, (_, i) =>
-                fetchWasi('/property/search', { take: TAKE, skip: (i + 1) * TAKE })
-                    .then(r => extractItems(r))
-                    .catch(() => [])
-            )
+            Array.from({ length: restantes }, (_, i) => traerPagina((i + 1) * TAKE))
         );
         for (const p of paginas) items.push(...p);
     }
 
+    // Red de seguridad: si leímos menos de lo que Wasi dice tener (y no es por
+    // el tope), algo falló y preferimos no publicar un sitemap a medias.
+    const esperado = Math.min(total, MAX_PAGINAS * TAKE);
+    if (items.length < esperado) {
+        throw new Error(`Inventario incompleto: ${items.length} de ${esperado} esperados`);
+    }
+
     const disponibles = items.filter(estaDisponible);
-    const descartados = items.length - disponibles.length;
-    console.log(`[api/sitemap] ${items.length} inmuebles leidos, ${descartados} no disponibles descartados`);
+    console.log(`[api/sitemap] ${items.length} inmuebles leidos, ${items.length - disponibles.length} no disponibles descartados`);
 
     return [...new Set(disponibles.map(p => p.id_property).filter(Boolean).map(String))];
 }
