@@ -206,7 +206,7 @@ const NosotrosPage = () => {
                             <div className="relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="/images/Equipo de ventas.jpg"
+                                        src="/images/equipo-de-ventas.webp"
                                         alt="Equipo de ventas de Escala Inmobiliaria"
                                         width="600"
                                         height="400"
@@ -226,7 +226,7 @@ const NosotrosPage = () => {
                             <div className="order-2 lg:order-1 relative">
                                 <BentoCard className="relative overflow-hidden p-0 border-0 shadow-2xl">
                                     <img
-                                        src="/images/Edificios.jpg"
+                                        src="/images/Edificios.webp"
                                         alt="Edificios modernos de Medellín"
                                         width="600"
                                         height="400"

@@ -130,8 +130,12 @@ export function mapWasiPropiedad(p, opts = {}) {
         habitaciones: Number(p.bedrooms) || 0,
         banos: Number(p.bathrooms) || 0,
         parqueadero: Number(p.garages) || 0,
-        imagen: imagenesUniq[0] || '',
-        imagenes: imagenesUniq,
+        imagen: imagenesUniq[0] ? imagenTarjeta(imagenesUniq[0], 600, 450) : '',
+        // srcset para que las pantallas 1x no descarguen la versión de 2x
+        imagenSrcset: imagenesUniq[0]
+            ? `${imagenTarjeta(imagenesUniq[0], 300, 225)} 300w, ${imagenTarjeta(imagenesUniq[0], 600, 450)} 600w`
+            : '',
+        imagenes: imagenesUniq.map(imagenGaleria),
         descripcion: p.observations || p.comment || '',
         direccion: (p.address || '').trim(),
         estrato: p.stratum || '',
@@ -152,6 +156,55 @@ export function mapWasiPropiedad(p, opts = {}) {
         _titulo: p.title || '',
         _id_user: p.id_user || null,
     };
+}
+
+// === Optimización de imágenes de Wasi ===
+// image.wasi.co es un AWS Serverless Image Handler: la ruta es base64 de un
+// JSON { bucket, key, edits } donde `edits` son operaciones de Sharp. Es decir
+// que podemos pedir el tamaño y el formato que queramos sin coste ni proxy
+// propio. Por defecto Wasi entrega JPEG a 555x416; en WebP al tamaño real de
+// la tarjeta pesa un 78% menos.
+const IMG_HOST = 'https://image.wasi.co/';
+
+/**
+ * Reescribe la URL de una imagen de Wasi aplicando nuevos `edits`.
+ * Si la URL no tiene el formato esperado, se devuelve intacta.
+ * @param {string} url
+ * @param {(editsActuales: Object) => Object} construirEdits
+ */
+function reencodeWasiImage(url, construirEdits) {
+    if (typeof url !== 'string' || !url.startsWith(IMG_HOST)) return url;
+    try {
+        const b64 = url.slice(IMG_HOST.length).split(/[?#]/)[0];
+        const payload = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'));
+        if (!payload || !payload.bucket || !payload.key) return url;
+        const siguiente = { ...payload, edits: construirEdits(payload.edits || {}) };
+        return IMG_HOST + Buffer.from(JSON.stringify(siguiente)).toString('base64');
+    } catch {
+        // Formato inesperado: mejor la imagen original que ninguna.
+        return url;
+    }
+}
+
+// Miniatura de tarjeta: recorta al tamaño en que realmente se muestra.
+function imagenTarjeta(url, width, height) {
+    return reencodeWasiImage(url, () => ({
+        normalise: true,
+        rotate: 0,
+        resize: { width, height, fit: 'cover' },
+        toFormat: 'webp',
+        webp: { quality: 75 },
+    }));
+}
+
+// Galería del detalle: conserva el recorte que ya trae Wasi y solo cambia el
+// formato a WebP (~27% menos) — ahí sí queremos la resolución completa.
+function imagenGaleria(url) {
+    return reencodeWasiImage(url, (edits) => ({
+        ...edits,
+        toFormat: 'webp',
+        webp: { quality: 78 },
+    }));
 }
 
 function pickImageUrl(img) {

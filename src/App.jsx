@@ -12,9 +12,6 @@ import { HelmetProvider, Helmet } from 'react-helmet-async';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import GoogleAnalytics from './components/analytics/GoogleAnalytics';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { useGSAP } from '@gsap/react';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import Hero from './components/sections/Hero';
@@ -44,48 +41,71 @@ const SedeSabanetaPage = lazy(() => import('./pages/SedeSabanetaPage'));
 // Placeholder ligero mientras carga una sección lazy
 const SectionFallback = () => <div className="w-full h-96 bg-slate-50" />;
 
-gsap.registerPlugin(ScrollTrigger);
-
 function HomePage() {
     const mainRef = useRef(null);
 
-    useGSAP(() => {
+    useEffect(() => {
         // En móvil saltamos animaciones GSAP/ScrollTrigger:
         // - El bounce nativo de iOS pelea con ScrollTrigger.
         // - Compositing 3D consume batería innecesaria.
         // - La animación es decorativa, sin valor funcional crítico.
+        //
+        // Como es puramente decorativa y solo desktop, GSAP se importa de forma
+        // dinámica: así ni la librería ni ScrollTrigger entran en el bundle de
+        // arranque, y en móvil no se descargan nunca. Las secciones son
+        // visibles desde el primer paint (la animación solo desplaza en Y),
+        // por lo que cargarla tarde no provoca ningún salto.
         const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
         if (!isDesktop) return;
 
-        const sections = mainRef.current.querySelectorAll('.page-section');
+        let ctx;
+        let timer;
+        let cancelado = false;
 
-        sections.forEach((section, i) => {
-            if (i === 0) return;
+        (async () => {
+            const [gsapMod, stMod] = await Promise.all([
+                import('gsap'),
+                import('gsap/ScrollTrigger'),
+            ]);
+            if (cancelado || !mainRef.current) return;
 
-            gsap.fromTo(section,
-                { y: 30, force3D: true },
-                {
-                    y: 0,
-                    force3D: true,
-                    duration: 0.7,
-                    ease: "power2.out",
-                    scrollTrigger: {
-                        trigger: section,
-                        start: "top 88%",
-                        end: "top 55%",
-                        scrub: false,
-                        once: true,
-                    },
-                }
-            );
-        });
+            const gsap = gsapMod.default || gsapMod.gsap;
+            const { ScrollTrigger } = stMod;
+            gsap.registerPlugin(ScrollTrigger);
 
-        // Refresca tras layout shifts (fonts, imágenes, etc.)
-        const timer = setTimeout(() => {
-            ScrollTrigger.refresh();
-        }, 500);
-        return () => clearTimeout(timer);
-    }, { scope: mainRef });
+            ctx = gsap.context(() => {
+                const sections = mainRef.current.querySelectorAll('.page-section');
+                sections.forEach((section, i) => {
+                    if (i === 0) return;
+                    gsap.fromTo(section,
+                        { y: 30, force3D: true },
+                        {
+                            y: 0,
+                            force3D: true,
+                            duration: 0.7,
+                            ease: "power2.out",
+                            scrollTrigger: {
+                                trigger: section,
+                                start: "top 88%",
+                                end: "top 55%",
+                                scrub: false,
+                                once: true,
+                            },
+                        }
+                    );
+                });
+            }, mainRef);
+
+            // Refresca tras layout shifts (fonts, imágenes, etc.)
+            timer = setTimeout(() => ScrollTrigger.refresh(), 500);
+        })();
+
+        return () => {
+            cancelado = true;
+            clearTimeout(timer);
+            ctx?.revert();
+        };
+    }, []);
 
     return (
         <>

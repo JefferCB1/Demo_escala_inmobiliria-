@@ -559,8 +559,13 @@ const PropertiesPage = () => {
                 <div className="relative h-48 overflow-hidden">
                   <img
                     src={propiedad.imagen}
+                    srcSet={propiedad.imagenSrcset || undefined}
+                    sizes="(min-width: 1280px) 290px, (min-width: 1024px) 380px, (min-width: 640px) 45vw, 92vw"
                     alt={`${propiedad.tipo} en ${propiedad.ubicacion}`}
                     loading="lazy"
+                    decoding="async"
+                    width="600"
+                    height="450"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute top-3 left-3">

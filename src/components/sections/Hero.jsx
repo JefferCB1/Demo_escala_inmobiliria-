@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
 import { SmartSearch } from '../ui/SmartSearch';
 import BlurText from '../ui/BlurText';
 import LogoStrip from './LogoStrip';
@@ -10,10 +9,19 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
     useEffect(() => {
         // Efecto tilt 3D solo en desktop — en móvil no hay mousemove y el
         // compositing 3D persistente afecta el scroll.
+        // GSAP se importa aquí dentro, de forma dinámica: así la librería no
+        // entra en el arranque (y en móvil no se descarga nunca).
         const isDesktop = window.matchMedia('(min-width: 768px)').matches;
         if (!isDesktop) return;
 
         const card = cardRef.current;
+        if (!card) return;
+
+        let gsap = null;
+        let cancelado = false;
+        import('gsap').then((mod) => {
+            if (!cancelado) gsap = mod.default || mod.gsap;
+        });
 
         const handleMouseMove = (e) => {
             const rect = card.getBoundingClientRect();
@@ -28,6 +36,8 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
             card.style.setProperty('--mouse-x', `${x}px`);
             card.style.setProperty('--mouse-y', `${y}px`);
 
+            // Si GSAP aún no ha llegado, simplemente no hay tilt todavía.
+            if (!gsap) return;
             gsap.to(card, {
                 rotationX: rotateX,
                 rotationY: rotateY,
@@ -37,6 +47,7 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
         };
 
         const handleMouseLeave = () => {
+            if (!gsap) return;
             gsap.to(card, {
                 rotationX: 0,
                 rotationY: 0,
@@ -49,24 +60,23 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
         card.addEventListener('mouseleave', handleMouseLeave);
 
         return () => {
+            cancelado = true;
             card.removeEventListener('mousemove', handleMouseMove);
             card.removeEventListener('mouseleave', handleMouseLeave);
         };
     }, []);
 
-    useEffect(() => {
-        gsap.fromTo(cardRef.current,
-            { y: 30, opacity: 0, scale: 0.9 },
-            { y: 0, opacity: 1, scale: 1, duration: 0.8, delay, ease: "back.out(1.7)" }
-        );
-    }, [delay]);
-
     const baseClasses = dark 
         ? "bg-gradient-to-br from-escala-dark to-slate-900 border-gray-800"
         : "bg-white border-gray-100";
 
+    // Dos capas a propósito: la de fuera hace la animación de entrada con CSS
+    // y la de dentro recibe el tilt de GSAP. Si compartieran elemento, la
+    // animación CSS (con fill forwards) pisaría el `transform` del tilt.
+    // `h-full` en ambas para conservar el estirado del grid.
     return (
-        <div ref={cardRef} className={`metric-card relative group overflow-hidden rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${baseClasses} md:[perspective:1200px] md:[transform-style:preserve-3d]`}>
+        <div className="metric-card-in h-full" style={{ animationDelay: `${delay}s` }}>
+        <div ref={cardRef} className={`metric-card relative group h-full overflow-hidden rounded-2xl p-4 sm:p-6 shadow-xl hover:shadow-2xl transition-all duration-300 ${baseClasses} md:[perspective:1200px] md:[transform-style:preserve-3d]`}>
 
             {/* Glowing Spotlight Following Cursor — solo desktop (hidden md:block) */}
             <div
@@ -80,6 +90,7 @@ const MetricCard = ({ children, delay = 0, dark = false }) => {
             <div className="relative z-10 flex flex-col items-center md:[transform:translateZ(40px)]">
                 {children}
             </div>
+        </div>
         </div>
     );
 };
@@ -106,27 +117,14 @@ const Hero = () => {
             cancelId = idle(() => setShowVideo(true));
         }
 
-        // Animaciones GSAP de entrada SOLO en desktop. En móvil bloqueaban el
-        // main thread durante ~1.5s después del primer paint (translate + opacity
-        // sobre múltiples elementos con stagger), impidiendo que iOS Safari
-        // procesara el scroll del usuario hasta que terminaran.
-        let ctx;
-        if (isDesktop) {
-            ctx = gsap.context(() => {
-                gsap.fromTo(".hero-text",
-                    { y: 50, opacity: 0 },
-                    { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power3.out" }
-                );
-                gsap.fromTo(".hero-search",
-                    { y: 30, opacity: 0, scale: 0.95 },
-                    { y: 0, opacity: 1, scale: 1, duration: 1.2, delay: 0.4, ease: "power2.out" }
-                );
-            }, containerRef);
-        }
+        // Las animaciones de entrada del texto y el buscador ahora son CSS
+        // (.hero-text / .hero-search en global.css), solo activas a partir de
+        // 768px igual que antes. Se sacaron de GSAP para no arrastrar la
+        // librería al arranque, y de paso desaparece el parpadeo que habría
+        // al aplicar opacity:0 desde JS después del primer paint.
 
         return () => {
             if (cancelId && window.cancelIdleCallback) window.cancelIdleCallback(cancelId);
-            if (ctx) ctx.revert();
         };
     }, []);
 
@@ -151,10 +149,10 @@ const Hero = () => {
             </div>
 
             <div className="relative z-10 max-w-5xl w-full flex flex-col items-center text-center mt-8 sm:mt-10">
-                <div className="hero-text inline-block px-3 sm:px-4 py-1.5 bg-orange-100 text-escala-accent rounded-full text-xs sm:text-sm font-bold mb-4 sm:mb-6 border border-orange-200 uppercase tracking-widest shadow-sm">
+                <div className="hero-text hero-d1 inline-block px-3 sm:px-4 py-1.5 bg-orange-100 text-escala-accent rounded-full text-xs sm:text-sm font-bold mb-4 sm:mb-6 border border-orange-200 uppercase tracking-widest shadow-sm">
                     Revolucionando el Mercado
                 </div>
-                <h1 className="hero-text font-heading text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight text-escala-dark mb-4 sm:mb-6 leading-tight">
+                <h1 className="hero-text hero-d2 font-heading text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight text-escala-dark mb-4 sm:mb-6 leading-tight">
                     <span className="flex flex-col items-center">
                         <span>Encuentra tu próximo</span>
                         <span className="text-escala-accent">
@@ -175,7 +173,7 @@ const Hero = () => {
                         </span>
                     </span>
                 </h1>
-                <p className="hero-text text-base sm:text-lg md:text-xl text-gray-600 font-medium max-w-2xl mb-8 sm:mb-12 px-4 sm:px-0">
+                <p className="hero-text hero-d3 text-base sm:text-lg md:text-xl text-gray-600 font-medium max-w-2xl mb-8 sm:mb-12 px-4 sm:px-0">
                     Miles de propiedades exclusivas en Medellín y Sabaneta. Te acompañamos en todo el proceso de compra o arriendo de forma segura y rápida.
                 </p>
 

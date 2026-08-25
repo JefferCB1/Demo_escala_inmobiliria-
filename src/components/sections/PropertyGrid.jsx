@@ -12,8 +12,13 @@ const PropertyCard = ({ propiedad }) => (
         {propiedad.imagen ? (
           <img
             src={propiedad.imagen}
+            srcSet={propiedad.imagenSrcset || undefined}
+            sizes="(min-width: 640px) 288px, 256px"
             alt={`${propiedad.tipo} en ${propiedad.ubicacion}`}
             loading="lazy"
+            decoding="async"
+            width="288"
+            height="216"
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
