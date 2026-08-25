@@ -108,10 +108,13 @@ export default async function handler(req, res) {
         return res.status(200).send(xml);
     } catch (err) {
         console.error('[api/sitemap]', err.message);
-        // Si Wasi falla, al menos devolvemos las páginas fijas en vez de un 500:
-        // un sitemap incompleto es mucho mejor que ninguno.
-        res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-        res.setHeader('Cache-Control', 's-maxage=300');
-        return res.status(200).send(construirXml([]));
+        // Si Wasi falla NO devolvemos un sitemap recortado: pasar de 905 URLs a
+        // 5 le está diciendo al buscador que esas páginas desaparecieron. Un 503
+        // significa "vuelve luego", y Google conserva el último sitemap bueno.
+        // Y sin cachear, para que el siguiente intento reintente de verdad
+        // (cachear el fallo lo dejaba pegado 5 minutos).
+        res.setHeader('Cache-Control', 'no-store');
+        res.setHeader('Retry-After', '300');
+        return res.status(503).send('Sitemap temporalmente no disponible');
     }
 }
