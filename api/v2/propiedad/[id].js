@@ -109,6 +109,13 @@ export default async function handler(req, res) {
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=3600');
         return res.status(200).json({ propiedad });
     } catch (err) {
+        // Wasi responde con código 1 cuando el id no existe. Eso es un 404,
+        // no un fallo del servidor: si devolviéramos 500, un buscador trataría
+        // una ficha retirada como un error temporal y seguiría reintentando.
+        if (err.wasiCode === 1 || /does not exist/i.test(err.message || '')) {
+            res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+            return res.status(404).json({ error: 'Propiedad no encontrada' });
+        }
         console.error('[api/v2/propiedad]', err.message);
         return res.status(500).json({ error: 'No se pudo cargar la propiedad', detail: err.message });
     }

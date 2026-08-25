@@ -38,7 +38,12 @@ export async function fetchWasi(path, params = {}) {
 
     const data = await res.json();
     if (data.status === 'error') {
-        throw new Error(`Wasi error ${data.code}: ${data.message}`);
+        // Adjuntamos el código de Wasi al error para que quien llama pueda
+        // distinguir "este recurso no existe" (código 1) de un fallo real del
+        // servicio. Sin esto, un id inexistente acababa en un 500 genérico.
+        const err = new Error(`Wasi error ${data.code}: ${data.message}`);
+        err.wasiCode = Number(data.code);
+        throw err;
     }
     return data;
 }
@@ -136,6 +141,10 @@ export function mapWasiPropiedad(p, opts = {}) {
             ? `${imagenTarjeta(imagenesUniq[0], 300, 225)} 300w, ${imagenTarjeta(imagenesUniq[0], 600, 450)} 600w`
             : '',
         imagenes: imagenesUniq.map(imagenGaleria),
+        // Para og:image / twitter:image — la usan tanto el <head> que inyecta
+        // api/seo/propiedad.js como el <Helmet> de PropertyDetail, para que
+        // servidor y cliente anuncien exactamente la misma imagen.
+        imagenOg: imagenesUniq[0] ? imagenSocial(imagenesUniq[0]) : '',
         descripcion: p.observations || p.comment || '',
         direccion: (p.address || '').trim(),
         estrato: p.stratum || '',
@@ -194,6 +203,20 @@ function imagenTarjeta(url, width, height) {
         resize: { width, height, fit: 'cover' },
         toFormat: 'webp',
         webp: { quality: 75 },
+    }));
+}
+
+// Imagen para previsualizaciones de enlaces (Open Graph / Twitter).
+// JPEG a propósito, NO WebP: WhatsApp no lo renderiza de forma fiable en las
+// tarjetas de enlace, y compartir por WhatsApp es el canal principal aquí.
+// 1200x630 es la proporción que esperan Facebook, WhatsApp y X.
+export function imagenSocial(url) {
+    return reencodeWasiImage(url, () => ({
+        normalise: true,
+        rotate: 0,
+        resize: { width: 1200, height: 630, fit: 'cover' },
+        toFormat: 'jpeg',
+        jpeg: { quality: 80 },
     }));
 }
 

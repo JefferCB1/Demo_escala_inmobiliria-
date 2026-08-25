@@ -25,3 +25,4 @@ test-v2-*.js
 # Artefactos de cotización
 cotizacion_wasi.py
 Cotizacion_Integracion_Wasi.pdf
+test-*.mjs

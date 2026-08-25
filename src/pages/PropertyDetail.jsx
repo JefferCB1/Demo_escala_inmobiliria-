@@ -139,7 +139,7 @@ const PropertyDetail = () => {
         <link rel="canonical" href={`https://escalainmobiliaria.com.co/propiedad/${property.id}`} />
         <meta property="og:title" content={titulo} />
         <meta property="og:description" content={`${property.tipo} en ${property.ubicacion} - ${property.area}m² · ${property.habitaciones} alcobas · Código ${property.codigo}`} />
-        <meta property="og:image" content={property.imagenes?.[0]} />
+        <meta property="og:image" content={property.imagenOg || property.imagenes?.[0]} />
         <script type="application/ld+json">{JSON.stringify(schemaData)}</script>
       </Helmet>
       <Navbar />
