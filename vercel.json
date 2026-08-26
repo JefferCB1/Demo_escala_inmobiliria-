@@ -63,7 +63,11 @@
       "destination": "/api/sitemap"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(nosotros|propiedades|sede-medellin|sede-sabaneta)",
       "destination": "/index.html"
     }
   ]

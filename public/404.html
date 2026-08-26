@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Página no encontrada | Escala Inmobiliaria</title>
+    <meta name="robots" content="noindex, follow" />
+    <link rel="icon" type="image/png" href="/Logo_inmboliaria.png" />
+    <style>
+        :root {
+            --naranja: #FF6B00;
+            --oscuro: #1a1a1a;
+            --gris: #6b7280;
+            --fondo: #f5f5f5;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: var(--fondo);
+            color: var(--oscuro);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+        }
+
+        .caja {
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo { height: 56px; width: auto; margin-bottom: 28px; }
+
+        .codigo {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--naranja);
+            margin: 0 0 10px;
+        }
+
+        h1 {
+            font-size: clamp(26px, 5vw, 34px);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 14px;
+        }
+
+        p {
+            color: var(--gris);
+            font-size: 16px;
+            margin: 0 0 28px;
+        }
+
+        .acciones {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        a {
+            display: inline-block;
+            padding: 13px 26px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+        }
+
+        .primario {
+            background: var(--naranja);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, .35);
+        }
+
+        .primario:hover {
+            background: #e66000;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 0, .45);
+        }
+
+        .secundario {
+            background: #fff;
+            color: var(--oscuro);
+            border: 1px solid #e5e5e5;
+        }
+
+        .secundario:hover { background: #fafafa; transform: translateY(-2px); }
+
+        .sedes {
+            margin-top: 32px;
+            padding-top: 22px;
+            border-top: 1px solid #e5e5e5;
+            font-size: 14px;
+            color: var(--gris);
+        }
+
+        .sedes a {
+            padding: 0;
+            border-radius: 0;
+            background: none;
+            border: none;
+            color: var(--naranja);
+            font-weight: 600;
+            box-shadow: none;
+        }
+
+        .sedes a:hover { text-decoration: underline; transform: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            a, a:hover { transition: none; transform: none; }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="caja">
+        <img class="logo" src="/Logo_inmboliaria.png" alt="Escala Inmobiliaria" width="56" height="56" />
+        <p class="codigo">Error 404</p>
+        <h1>Esta página no existe</h1>
+        <p>
+            Puede que el enlace esté mal, o que el inmueble que buscabas ya
+            no esté disponible.
+        </p>
+        <div class="acciones">
+            <a class="primario" href="/propiedades">Ver propiedades</a>
+            <a class="secundario" href="/">Ir al inicio</a>
+        </div>
+        <p class="sedes">
+            ¿Necesitas ayuda? Escríbenos por
+            <a href="https://wa.me/573009122101?text=Hola,%20llegu%C3%A9%20a%20una%20p%C3%A1gina%20que%20no%20existe%20y%20necesito%20ayuda">WhatsApp</a>
+            o visita la <a href="/sede-medellin">Sede Medellín</a> o la
+            <a href="/sede-sabaneta">Sede Sabaneta</a>.
+        </p>
+    </main>
+</body>
+
+</html>

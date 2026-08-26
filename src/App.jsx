@@ -140,6 +140,12 @@ function App() {
                 <ScrollToTop />
                 <Navbar />
                 <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-escala-accent border-t-transparent rounded-full animate-spin" /></div>}>
+                {/* IMPORTANTE: estas rutas están duplicadas en vercel.json.
+                    El rewrite a /index.html solo cubre las rutas listadas ahí,
+                    para que cualquier otra URL devuelva un 404 real en vez de
+                    servir la SPA con un 200 (que Google trata como soft 404).
+                    Si añades una ruta aquí, añádela también en vercel.json o
+                    dará 404 al entrar directamente. */}
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/nosotros" element={<NosotrosPage />} />
