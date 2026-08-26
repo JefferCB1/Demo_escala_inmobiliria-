@@ -45,14 +45,22 @@ function estaDisponible(p) {
 // arranque en frío tras un deploy salieron 114 fichas en vez de 905 y ahí se
 // quedaron. Un sitemap incompleto es peor que ninguno, así que ahora el fallo
 // sube y el handler responde 503.
+const esperar = (ms) => new Promise(r => setTimeout(r, ms));
+
 async function traerPagina(skip) {
+    // Tres intentos con espera creciente. El reintento inmediato no bastaba:
+    // en el arranque en frio de la funcion, las 9 llamadas simultaneas a Wasi
+    // fallaban a la vez y la primera peticion tras cada despliegue devolvia
+    // 503. Un respiro breve absorbe ese tipo de fallo transitorio.
+    const esperas = [0, 400, 1200];
     let ultimoError;
-    for (let intento = 1; intento <= 2; intento++) {
+    for (let intento = 0; intento < esperas.length; intento++) {
+        if (esperas[intento]) await esperar(esperas[intento]);
         try {
             return extractItems(await fetchWasi('/property/search', { take: TAKE, skip }));
         } catch (err) {
             ultimoError = err;
-            console.warn(`[api/sitemap] fallo leyendo skip=${skip} (intento ${intento}): ${err.message}`);
+            console.warn(`[api/sitemap] fallo leyendo skip=${skip} (intento ${intento + 1}): ${err.message}`);
         }
     }
     throw new Error(`No se pudo leer skip=${skip}: ${ultimoError?.message}`);
