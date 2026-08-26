@@ -237,7 +237,11 @@ export default async function handler(req, res) {
         // `replyTo` en camelCase — el SDK arma el payload con lista blanca y
         // descarta `reply_to`, que era lo que se pasaba antes.
         const { data, error } = await getResend().emails.send({
-            from: 'PQRS Escala Inmobiliaria <pqrs@escalainmobiliaria.com.co>',
+            // Subdominio `mail.`, no el dominio raíz: el raíz está reclamado en
+            // Resend por otra cuenta y ningún otro team puede verificarlo. Este
+            // subdominio sí está verificado en el team de Escala, así que el
+            // envío deja de depender de una cuenta ajena.
+            from: 'PQRS Escala Inmobiliaria <pqrs@mail.escalainmobiliaria.com.co>',
             to: destinatario,
             ...(BCC.length > 0 ? { bcc: BCC } : {}),
             replyTo: datos.email,
