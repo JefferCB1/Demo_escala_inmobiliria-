@@ -9,6 +9,7 @@ const PayButton = () => {
     const paymentOptions = [
         { label: 'Pago Medellín', sub: 'Sede Laureles', url: 'https://pagos.palomma.com/escalainmobiliariamedellin/auth/login' },
         { label: 'Pago Sabaneta', sub: 'Sede Parque', url: 'https://pagos.palomma.com/escalainmobiliariasabaneta/auth/login' },
+        { label: 'Pago Envigado', sub: 'Sede Envigado', url: 'https://pagos.palomma.com/escalainmobiliariaenvigado/auth/login' },
     ];
 
     useEffect(() => {
